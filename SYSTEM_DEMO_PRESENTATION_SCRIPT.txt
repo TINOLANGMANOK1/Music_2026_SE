@@ -1,0 +1,448 @@
+MUSIC SYSTEM DEMONSTRATION SCRIPT
+==================================
+
+Purpose
+-------
+This script is for presenting the music department booking and resource system
+to staff. It starts with the Music Dean role, then demonstrates Administrator,
+Student Assistant, and Student Panel workflows.
+
+The main message to explain during the presentation is:
+
+    Staff manage schedules, approvals, students, and resources.
+    Students use a controlled RFID self-service process for day-to-day
+    resource borrowing and returns.
+
+Before the demonstration
+------------------------
+Prepare these items before presenting:
+
+- A browser with the system login page open.
+- A Music Dean account.
+- An Administrator account.
+- A Student Assistant account.
+- A Student Panel account.
+- A test student record with an RFID UID.
+- A test RFID UID, such as 00203595, for keyboard simulation.
+- A few available cubicles, instruments, and tools.
+- Test dates and times that do not conflict with existing bookings.
+
+Important safety steps:
+
+- Use test bookings, not real reservations.
+- Use future dates and times.
+- Do not delete real users, students, inventory, or bookings.
+- Do not expose passwords during the presentation.
+- If possible, use dedicated test accounts and test student records.
+
+PRESENTATION INTRODUCTION
+-------------------------
+Say:
+
+"This system manages music department facilities and resources in one place.
+It handles Cecilia Hall and MTL reservations, cubicle usage, instrument and
+tool borrowing, student information, RFID identification, approvals, and
+reports. Different roles see different functions because not everyone has the
+same responsibility."
+
+"The Dean and other staff manage scheduled or controlled activities. Students
+use RFID for quick self-service borrowing and returning of resources. This
+separation protects the system while keeping student use simple."
+
+PART 1: MUSIC DEAN WALKTHROUGH
+------------------------------
+
+1. Log in as Music Dean
+
+Action:
+- Open the login page.
+- Enter the Music Dean account.
+- Open the dashboard.
+
+Say:
+
+"I am starting with the Music Dean because this role is responsible for
+reviewing and controlling booking requests. The Dean has more permissions than
+an operational staff member because approvals affect the department schedule."
+
+2. Show the dashboard
+
+Action:
+- Point out pending approvals, booking information, resource counts, and
+  dashboard statistics.
+
+Say:
+
+"The dashboard gives the Dean a summary of what needs attention. Pending
+approvals are requests that have been submitted but are not yet confirmed. The
+resource counts show current availability."
+
+3. Demonstrate Cecilia Hall booking
+
+Action:
+- Open Cecilia Hall.
+- Show the calendar.
+- Click New Booking.
+- Enter a test student's name and email.
+- Select the booker type.
+- Select a future date and time.
+- Enter the purpose.
+- Submit the booking.
+
+Say:
+
+"Cecilia Hall is a scheduled facility. The booking includes the person who will
+use it, the date and time, and the purpose. These details are needed for
+scheduling, conflict checking, and accountability. External bookings may also
+require a supporting letter."
+
+"The request is initially pending. It is not treated as confirmed until the
+appropriate approval action is completed."
+
+4. Demonstrate approval and rejection
+
+Action:
+- Open a pending Cecilia Hall request.
+- Approve one test request.
+- Open another test request and reject it with a reason, if available.
+
+Say:
+
+"The Music Dean approves or rejects Cecilia Hall requests because this role is
+responsible for the facility schedule. A rejection reason gives the requester
+an explanation and creates a useful record."
+
+5. Explain the calendar display
+
+Action:
+- Point to a booking from 1:00 PM to 3:00 PM.
+
+Say:
+
+"The calendar uses 30-minute rows. A 1:00 PM to 3:00 PM booking occupies the
+1:00, 1:30, 2:00, and 2:30 intervals. The colored block ends at the 3:00 PM
+boundary and does not occupy the 3:00 to 3:30 PM row. This allows a new booking
+to start at exactly 3:00 PM without visual overlap."
+
+6. Demonstrate MTL booking
+
+Action:
+- Open MTL Booking.
+- Click New Booking.
+- Select a test student.
+- Enter a future date, start time, end time, and purpose.
+- Submit the request.
+- Show the pending request.
+
+Say:
+
+"MTL uses a similar approval-based workflow. The student ID is important here
+because the system checks the student's record and remaining MTL time before
+accepting the booking."
+
+7. Explain pending statistics
+
+Action:
+- Show the Total, Confirmed, and Pending values.
+- Change the calendar week if useful.
+
+Say:
+
+"Total and Confirmed describe the bookings displayed for the selected view.
+Pending counts pending requests in the selected day, week, or month. The
+Pending Requests badge covers pending requests across all dates. The page may
+need to refresh after a new request is created before all values update."
+
+PART 2: ADMINISTRATOR WALKTHROUGH
+---------------------------------
+
+1. Log in as Administrator
+
+Action:
+- Log out.
+- Log in as Administrator.
+- Open the dashboard.
+
+Say:
+
+"The Administrator manages the system structure and data. This role is for
+maintaining users, students, inventory, and configuration. It is different
+from the Dean role, which focuses more on booking approval and department
+operations."
+
+2. Demonstrate user management
+
+Action:
+- Open Account or User Management.
+- Show the user list without changing real accounts.
+- Explain that passwords are reset rather than viewed.
+
+Say:
+
+"Passwords are stored securely as hashes, so they cannot be viewed. An
+Administrator can reset a user's password or create a dedicated test account.
+This protects account security while allowing access to be managed."
+
+3. Demonstrate student information
+
+Action:
+- Open Student Information.
+- Search for a test student.
+- Show the student ID and RFID UID fields.
+- Do not change real student data.
+
+Say:
+
+"The student record connects the student's identity, student ID, remaining MTL
+time, and RFID UID. The RFID scan uses the UID to find the correct student."
+
+4. Demonstrate inventory and cubicle management
+
+Action:
+- Open Inventory.
+- Show asset status and availability.
+- Open Manage Cubicles.
+- Show cubicle types, numbers, and statuses.
+
+Say:
+
+"Administrators maintain the resources that other users can borrow. Accurate
+availability is important because the booking workflow should not offer a
+resource that is already occupied, unavailable, or under maintenance."
+
+5. Explain Administrator approval behavior
+
+Say:
+
+"The Administrator can create bookings and manage much of the system, but the
+current Cecilia Hall controller specifically gives approval and rejection to
+the Music Dean. This keeps facility approval with the role responsible for the
+Dean's schedule."
+
+PART 3: STUDENT ASSISTANT WALKTHROUGH
+-------------------------------------
+
+1. Log in as Student Assistant
+
+Action:
+- Log out.
+- Log in as Student Assistant.
+- Open the dashboard.
+
+Say:
+
+"Student Assistant is a staff role. It is not the same as Student Panel. The
+Student Assistant helps operate the department and can create bookings for
+students, but cannot approve or reject the requests."
+
+2. Create a Cecilia Hall booking for a student
+
+Action:
+- Open Cecilia Hall.
+- Create a test booking using the student's details.
+- Submit it.
+
+Say:
+
+"The Student Assistant can submit a request on behalf of a student. The name,
+email, date, time, and purpose identify the person receiving the reservation.
+The request still follows the pending and approval process."
+
+3. Create an MTL booking for a student
+
+Action:
+- Open MTL Booking.
+- Select the test student.
+- Enter the date, time, purpose, and required student details.
+- Submit it.
+
+Say:
+
+"The Student Assistant can prepare the request, but approval remains separate.
+This division prevents the person who creates a request from automatically
+approving it."
+
+4. Explain what Student Assistant cannot do
+
+Say:
+
+"The Student Assistant does not manage users, inventory configuration, or
+booking approvals. Those restrictions reduce accidental changes and preserve
+a review process."
+
+PART 4: STUDENT PANEL WALKTHROUGH
+---------------------------------
+
+1. Log in as Student Panel
+
+Action:
+- Log out.
+- Log in as the Student Panel account.
+- Show the dashboard.
+
+Say:
+
+"Student Panel is the student-facing self-service role. The dashboard shows
+available resources and explains the RFID process. It is intentionally simpler
+than the staff dashboard."
+
+2. Explain the visible pages
+
+Action:
+- Point out Home and Resources.
+- If MTL Booking is visible, explain that the page is not a direct student
+  booking form.
+- Point out that Cecilia Hall is not shown in the Student Panel menu.
+
+Say:
+
+"Students do not see staff management pages. Cecilia Hall is a scheduled
+facility managed through staff booking and approval. MTL also uses a staff
+booking form because the request checks student details and remaining MTL time.
+The current Student Panel role is not permitted to submit those normal forms."
+
+"The Resources page is mainly for viewing resource availability and status. The
+student booking action is started through the RFID scanner workflow."
+
+3. Explain why students use RFID
+
+Say:
+
+"RFID is intended for quick, on-site resource use. The student identifies
+themselves, selects an available resource, and confirms the booking. This is
+faster for a cubicle, instrument, or tool than completing a staff scheduling
+form. It also connects the activity to the correct student record."
+
+4. Test RFID without a machine
+
+Action:
+- Click an empty area of the page.
+- Make sure no text field, textarea, or select is focused.
+- Type this test UID:
+
+    00203595
+
+- Press Enter.
+
+Say:
+
+"A USB RFID reader normally types the UID like a keyboard and then sends Enter.
+For testing, I can simulate the reader with a normal keyboard. I must log in
+first because the scan endpoint requires an authenticated session."
+
+5. Demonstrate the RFID response
+
+Action:
+- Wait for the RFID options to appear.
+- If the student has no active booking, choose the booking option.
+- Select a cubicle, instrument, or tool.
+- Confirm the test booking.
+
+Say:
+
+"The system looks up the scanned UID, finds the matching student, and offers
+available resource actions. The booking is recorded against that student."
+
+6. Demonstrate an active booking and timeout
+
+Action:
+- Scan the same UID again after a booking exists.
+- Select the active booking.
+- Demonstrate the timeout or return action.
+
+Say:
+
+"The student does not need to scan constantly. One scan starts an action. A
+later scan can show that student's active resource bookings and begin a return
+or timeout. Scanning is not required to keep the booking active."
+
+7. Explain student visibility
+
+Say:
+
+"The RFID lookup searches by the scanned student's student ID. The student sees
+only their own active cubicle, instrument, and tool bookings. They do not see
+other students' active bookings, and this workflow is not a general calendar
+view for Cecilia Hall or MTL appointments."
+
+8. Demonstrate invalid RFID handling
+
+Action:
+- Click an empty area.
+- Type a value such as TEST-NOT-FOUND.
+- Press Enter.
+
+Say:
+
+"An unknown UID should produce an unrecognized student message. This confirms
+that the system does not allow an unidentified person to use the student
+workflow."
+
+LOGIN AND RFID SEQUENCE TO EXPLAIN
+----------------------------------
+For browser testing:
+
+    1. Log in to the system.
+    2. Open a normal system page.
+    3. Click outside input fields.
+    4. Scan the card, or type its UID on the keyboard.
+    5. Press Enter.
+    6. Select a resource or active booking.
+    7. Confirm the booking or timeout.
+
+For a real self-service station:
+
+    Student logs in at the station -> Scans RFID card -> System verifies student
+    -> Student selects resource -> System confirms booking or timeout
+
+A real hardware deployment may use a Sanctum API token for the scanner device.
+Browser testing uses the logged-in web session.
+
+FINAL COMPARISON TO PRESENT
+---------------------------
+
+Music Dean:
+- Controls approvals and manages department bookings.
+- Can create, approve, or reject applicable facility requests.
+
+Administrator:
+- Maintains users, students, inventory, and system data.
+- Can create bookings but Cecilia Hall approval remains assigned to the Dean.
+
+Student Assistant:
+- Operates booking workflows for students.
+- Can create requests but does not approve them.
+
+Student Panel:
+- Uses RFID self-service for cubicles, instruments, and tools.
+- Does not use staff forms for Cecilia Hall or MTL.
+- Sees only the scanned student's own active resource bookings.
+
+Closing statement
+-----------------
+Say:
+
+"The system separates scheduled facility management from fast resource
+self-service. Staff handle bookings that need planning, student details, and
+approval. Students use RFID for controlled, on-site borrowing and returning.
+Each role has only the permissions needed for its responsibility, which keeps
+the system easier to use and reduces unauthorized changes."
+
+TESTING CHECKLIST
+-----------------
+[ ] Music Dean login demonstrated.
+[ ] Cecilia Hall booking created.
+[ ] Cecilia Hall request approved or rejected.
+[ ] MTL booking created.
+[ ] Pending count explained.
+[ ] Administrator user-management area shown.
+[ ] Student record and RFID field explained.
+[ ] Inventory and cubicle management shown.
+[ ] Student Assistant booking workflow demonstrated.
+[ ] Student Panel dashboard shown.
+[ ] RFID UID 00203595 tested by keyboard.
+[ ] Cubicle, instrument, or tool booking demonstrated.
+[ ] Active booking timeout demonstrated.
+[ ] Invalid RFID value tested.
+[ ] Student visibility limitation explained.
+[ ] No real records were deleted or changed accidentally.

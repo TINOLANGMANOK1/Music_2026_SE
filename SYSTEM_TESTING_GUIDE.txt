@@ -1,0 +1,331 @@
+MUSIC SYSTEM TESTING GUIDE
+============================
+
+Purpose
+-------
+This guide explains the current user roles, booking workflows, RFID testing
+without hardware, and the booking-calendar behavior confirmed in the system.
+
+WHAT THE SYSTEM IS ABOUT
+------------------------
+This is a music department resource and booking management system. It is used
+to manage:
+
+- Cecilia Hall reservations.
+- Music Technology Lab (MTL) reservations.
+- Cubicle availability and usage.
+- Musical instruments and audio-visual equipment.
+- Tools and other borrowable resources.
+- Student records and RFID identifiers.
+- User accounts, permissions, activity, and reports.
+
+The system has two connected purposes:
+
+1. Staff manage schedules, approvals, students, equipment, and availability.
+2. Students use the RFID self-service process to borrow and return day-to-day
+   resources such as cubicles, instruments, and tools.
+
+BENEFITS OF THE ROLE-BASED DESIGN
+---------------------------------
+- Each person sees the functions needed for their job.
+- Students cannot approve, reject, delete, or manage other users' bookings.
+- The Music Dean can control reservations that require approval.
+- Staff can make reservations on behalf of students when a scheduled facility
+  booking needs staff review.
+- RFID identifies the student using the resource and connects activity to the
+  correct student record.
+- Availability checks reduce double-booking and prevent unavailable resources
+  from being selected.
+- Separate permissions protect inventory, student information, and reports.
+
+WHY WEB BOOKING AND RFID BOOKING ARE DIFFERENT
+----------------------------------------------
+The web forms and RFID workflow serve different types of reservations.
+
+Web booking is intended for staff-managed or approval-based reservations:
+
+- The Dean, Administrator, or Student Assistant can enter the student's name,
+  email, student ID, purpose, date, and time.
+- Staff can create a reservation for a student who is not operating the system
+  directly.
+- Cecilia Hall and MTL are scheduled facilities, so their requests can require
+  review, approval, conflict checking, and detailed information.
+- The Music Dean approves or rejects the applicable pending requests.
+
+RFID booking is intended for quick, on-site self-service resources:
+
+- A student identifies themselves by scanning an RFID card.
+- The system verifies the RFID against a student record.
+- The student selects an available cubicle, instrument, or tool.
+- The booking is recorded against that student and the resource becomes active.
+- The same process can be used to return or time out an active booking.
+
+This is why the Dean can use web-based cubicle and facility controls while a
+student normally uses RFID for resource self-service. The Dean is managing the
+department's resources and schedules; the student is using a controlled,
+identity-verified self-service station.
+
+The current Student Panel role does not submit the normal Cecilia Hall or MTL
+web forms. Those forms are staff workflows. The current RFID workflow also
+does not create Cecilia Hall or MTL reservations.
+
+USER ACCOUNTS FOR TESTING
+-------------------------
+The following accounts currently exist in the local database:
+
+Role: Music Dean
+Email: emoreno@uic.edu.ph
+Password: 123456
+
+Role: Student Assistant
+Email: jaurelio_230000001583@uic.edu.ph
+Password: 123456
+
+Role: Administrator
+Email: rpastrana_230000001763@uic.edu.ph
+Password: 123456
+
+Role: Student Panel
+Email: student_panel@uic.edu.ph
+Password: 123456
+
+Role: Student Assistant
+Email: student_assistant@uic.edu.ph
+Password: 123456
+
+Seeded test account definition
+------------------------------
+The project contains this seeded account definition:
+
+Email: test@example.com
+Password: password
+Name: Test User
+
+This account was not present in the local database when checked. Running the
+normal database seeder may create it, depending on the database environment.
+Do not use this default password in production.
+
+ROLE SUMMARY
+------------
+
+Administrator
+-------------
+Can:
+- Manage users and reset passwords.
+- Manage students.
+- Manage inventory and equipment.
+- Manage cubicle information.
+- View resources.
+- Create Cecilia Hall bookings.
+- Create MTL bookings.
+- View booking pages.
+- Delete bookings.
+- View reports and activity logs.
+- Use RFID resource-booking functions.
+
+Cannot:
+- Approve or reject Cecilia Hall bookings. The current controller limits this
+action to the Music Dean.
+
+Music Dean
+----------
+Can:
+- Create Cecilia Hall bookings.
+- Create MTL bookings.
+- Approve or reject Cecilia Hall bookings.
+- Approve or reject MTL bookings.
+- Manage cubicles.
+- Manage students.
+- Manage inventory.
+- View reports and activity logs.
+- Manage users in the permitted user-management areas.
+- View resources.
+- Use RFID resource-booking functions.
+
+Student Assistant
+-----------------
+This is a staff role, not the same as Student Panel.
+
+Can:
+- Create Cecilia Hall bookings.
+- Create MTL bookings.
+- Book cubicles, instruments, and tools.
+- View the Resources page.
+- View booking information and pending counts.
+- Use RFID resource-booking functions.
+
+Cannot:
+- Approve or reject Cecilia Hall or MTL bookings.
+- Manage users.
+- Manage inventory.
+- Manage cubicle configuration.
+- Access reports and activity logs through the sidebar.
+
+Student Panel
+-------------
+This role is intended for the student RFID self-service station.
+
+Can:
+- Log in to the Student Panel dashboard.
+- Scan a student RFID card.
+- Book available cubicles through the RFID workflow.
+- Borrow instruments through the RFID workflow.
+- Borrow tools through the RFID workflow.
+- Return or time out active resource bookings.
+- View available resource information.
+
+Cannot:
+- Create Cecilia Hall bookings through the normal booking form.
+- Create MTL bookings through the normal booking form.
+- Approve or reject bookings.
+- Manage users, inventory, students, or cubicles.
+- Access reports or activity logs.
+
+The Student Panel dashboard is designed around this workflow:
+
+    Scan RFID card -> Select resource -> Confirm booking
+
+BOOKING WORKFLOWS
+-----------------
+
+Cecilia Hall
+------------
+- Administrator, Music Dean, and Student Assistant can create bookings.
+- The Music Dean approves or rejects pending requests.
+- Student Panel cannot use the normal Cecilia Hall booking form.
+- Staff enter the student details when creating a booking on behalf of a
+  student. These details identify the person who will use the reservation.
+- External bookings may also require a PDF letter.
+
+MTL
+---
+- Administrator, Music Dean, and Student Assistant can create bookings.
+- The Music Dean or permitted administrator workflow handles approvals.
+- Student Panel cannot use the normal MTL booking form.
+- Staff enter the student's name, email, student ID, date, time, and purpose.
+- The student ID is checked against the student record and remaining MTL time.
+
+Cubicles, instruments, and tools
+--------------------------------
+- Student Panel uses the RFID self-service workflow.
+- Staff can also create or operate resource bookings through the normal system
+  functions available to their role.
+- The RFID scan identifies the student and displays active bookings or booking
+  choices.
+- MTL cubicles are filtered out of the RFID active-booking workflow because MTL
+  is handled through the separate MTL Booking page.
+
+RFID TESTING WITHOUT AN RFID MACHINE
+------------------------------------
+The website listens for keyboard input in the same way that a USB RFID reader
+usually sends characters. A reader normally types the UID and then sends Enter.
+You can simulate that with a normal keyboard.
+
+Steps:
+1. Log in first as the Student Panel user. The RFID scan endpoint requires an
+  authenticated web session (or an authenticated hardware API token).
+2. Open the Student Panel dashboard or another normal system page. The RFID
+  scanner component is loaded globally in the application layout.
+3. Click an empty area so that no text field, textarea, or select is focused.
+4. Type a valid RFID UID, simulating the reader typing the card value.
+5. Press Enter, simulating the reader's end-of-scan signal.
+6. The system sends the UID to the RFID scan endpoint and looks for a matching
+   student record.
+7. Select a resource to book, or select an active booking to time out.
+
+You do not need to scan constantly. Scan once when you want to start a
+self-service action. Scan again later when you want to check the student's
+currently active resource bookings or return/time out a resource. Repeatedly
+scanning is not required to keep a booking active.
+
+WHAT A STUDENT CAN SEE AFTER SCANNING
+-------------------------------------
+The RFID lookup searches for the student record matching the scanned UID and
+returns that student's active cubicle, instrument, and tool bookings. The
+student can then choose which of their active bookings to time out, or choose
+an available resource to book when there is no current booking.
+
+The student does not receive a list of other students' bookings. The RFID
+endpoint filters bookings by the scanned student's student ID, so the normal
+student workflow displays only the scanned student's own active resource
+bookings.
+
+The RFID workflow is for active resource usage, not a personal calendar view.
+It does not display other students' schedules, and it does not display the
+pending or approved Cecilia Hall and MTL web-booking schedules as personal
+student appointments. Staff use the Cecilia Hall and MTL pages to view and
+manage those scheduled bookings.
+
+For physical RFID hardware, the usual sequence is:
+
+   Student logs in at the station -> Student scans card -> System verifies UID
+   -> Student selects resource or active booking -> System confirms booking
+   or timeout
+
+For a hardware deployment, the scanner device may use a Sanctum API token.
+For browser testing, logging in first is sufficient and a keyboard can
+simulate the reader.
+
+Existing RFID UIDs available in the local database:
+
+    00203595
+    01439526
+    01620949
+    01633781
+    02251221
+    04009143
+    04053479
+    04824775
+    04930918
+    04941846
+
+Recommended first test UID: 00203595
+
+The UID must match a student's rfid_uid value exactly. An unknown value should
+produce an unrecognized-student message.
+
+While a booking form or text input is focused, the RFID keyboard listener is
+intentionally paused. This prevents typed form data from being treated as an
+RFID scan.
+
+CALENDAR BOOKING DISPLAY
+------------------------
+Bookings are displayed in 30-minute rows. A booking from 1:00 PM to 3:00 PM
+occupies these four intervals:
+
+    1:00-1:30 PM
+    1:30-2:00 PM
+    2:00-2:30 PM
+    2:30-3:00 PM
+
+The colored booking block ends at the bottom of the 2:30 PM row, which is the
+3:00 PM boundary. It does not occupy the 3:00-3:30 PM row, so a booking that
+starts at exactly 3:00 PM should not visually overlap it.
+
+PENDING BOOKING INDICATORS
+--------------------------
+The Pending value in the Total / Confirmed / Pending statistics now counts
+pending bookings in the currently selected day, week, or month on both the
+Cecilia Hall and MTL pages.
+
+The separate Pending Requests badge counts pending requests across all dates.
+The pages receive booking data when loaded or refreshed; they do not use live
+polling, so a new request may require a page refresh or Inertia reload before
+all indicators update.
+
+RECOMMENDED TEST PLAN
+--------------------
+1. Use Student Assistant to create a Cecilia Hall booking and an MTL booking.
+2. Use Music Dean to approve one request and reject another.
+3. Confirm the pending counts change after the page refreshes.
+4. Use Student Panel with RFID UID 00203595 to test resource self-service.
+5. Test booking a cubicle, instrument, and tool.
+6. Test timing out an active resource booking.
+7. Use Administrator to test user, student, inventory, and cubicle management.
+8. Test an invalid RFID value to confirm the error handling.
+
+SECURITY NOTE
+-------------
+The existing users' passwords cannot be recovered from the database because
+passwords are hashed. Reset or create dedicated test passwords through the
+Administrator workflow. Do not use the seeded password in production.

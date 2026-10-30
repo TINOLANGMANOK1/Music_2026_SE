@@ -1,0 +1,367 @@
+STUDENT TO DEAN WORKFLOW
+=========================
+
+Purpose
+-------
+This document explains how students, Student Assistants, Music Deans, and
+Administrators work together in the current system.
+
+The short version is:
+
+    Student requests -> Staff Assistant submits -> System validates
+    -> Music Dean reviews -> Request is approved or rejected
+
+For quick on-site borrowing, the process is different:
+
+    Student logs in -> Student scans RFID -> Student selects resource
+    -> System records active use -> Student scans again to return
+
+ROLES IN THE COLLABORATION
+--------------------------
+
+Student
+-------
+The student is the person who wants to reserve a facility or use a resource.
+The student provides the information needed for a scheduled request or uses an
+RFID card for self-service resources.
+
+The student can:
+- Request Cecilia Hall or MTL assistance from staff.
+- Use RFID to book available cubicles, instruments, and tools.
+- View only their own active RFID resource bookings after scanning.
+- Return or time out their active RFID resource bookings.
+
+The student cannot currently:
+- Submit the normal Cecilia Hall booking form.
+- Submit the normal MTL booking form.
+- Approve or reject requests.
+- Manage other users, students, inventory, or cubicle configuration.
+
+Student Assistant
+-----------------
+The Student Assistant is operational staff who helps students use the scheduled
+booking process.
+
+The Student Assistant can:
+- Collect the student's booking details.
+- Create Cecilia Hall booking requests.
+- Create MTL booking requests.
+- Book or operate resource workflows allowed to staff.
+- Submit a request for the student to be reviewed.
+
+The Student Assistant cannot:
+- Approve or reject Cecilia Hall or MTL requests.
+- Manage users.
+- Manage inventory configuration.
+- Manage cubicle configuration.
+- Use the approval power reserved for the Music Dean.
+
+Music Dean
+----------
+The Music Dean is the reviewer and decision-maker for the applicable scheduled
+booking requests.
+
+The Music Dean can:
+- Review pending Cecilia Hall requests.
+- Approve or reject Cecilia Hall requests.
+- Review and manage MTL booking requests according to the current permissions.
+- Create bookings when needed.
+- Manage department schedules and resources.
+- Review rejection reasons and booking details.
+
+Administrator
+------------
+The Administrator maintains the system and its data.
+
+The Administrator can:
+- Manage users and reset passwords.
+- Manage student information.
+- Manage inventory and equipment.
+- Manage cubicle information.
+- Create Cecilia Hall and MTL bookings.
+- View resources, reports, and activity information.
+
+The Administrator's role is mainly system and data management. The current
+Cecilia Hall controller specifically assigns approval and rejection to the
+Music Dean.
+
+WORKFLOW A: STUDENT REQUESTS CECILIA HALL
+-----------------------------------------
+
+1. Student decides to request Cecilia Hall.
+
+   The student prepares:
+   - Name.
+   - Email.
+   - Preferred date.
+   - Start time and end time.
+   - Purpose.
+   - Booker type, if required.
+   - Supporting letter for an external booking, if required.
+
+2. Student gives the details to a Student Assistant, Music Dean, or another
+   permitted staff member.
+
+3. Staff opens the Cecilia Hall booking page.
+
+4. Staff enters the student and booking details.
+
+5. The system validates the required fields.
+
+6. The system checks whether the selected time conflicts with an existing
+   booking.
+
+7. The request is saved with a pending status.
+
+8. The Music Dean reviews the pending request.
+
+9. The Music Dean chooses one result:
+
+   Approved:
+   - The request becomes a confirmed booking.
+   - It appears on the Cecilia Hall calendar.
+   - The student can use the hall at the approved date and time.
+
+   Rejected:
+   - The request is not confirmed.
+   - A rejection reason can explain the decision.
+   - The student or staff member can be informed outside or through the
+     application's available notification process.
+
+Flow summary:
+
+    Student
+       |
+       | Provides details
+       v
+    Student Assistant or permitted staff
+       |
+       | Enters and submits request
+       v
+    System validation and conflict check
+       |
+       | Saves as pending
+       v
+    Music Dean
+       |
+       +----------------------+
+       |                      |
+       v                      v
+    Approves              Rejects with reason
+       |                      |
+       v                      v
+    Confirmed booking      Not confirmed
+
+WHY CECILIA HALL USES THIS PROCESS
+----------------------------------
+Cecilia Hall is a scheduled facility. The department needs to coordinate time,
+prevent conflicts, know who is responsible for the booking, and keep a record
+of the decision. Staff therefore submit the request and the Music Dean reviews
+it.
+
+The student does not use RFID for Cecilia Hall in the current system because
+RFID is implemented for quick resource self-service, not scheduled hall
+reservations.
+
+WORKFLOW B: STUDENT REQUESTS MTL
+-------------------------------
+
+1. Student decides to request an MTL session.
+
+2. Student provides the required details to staff:
+   - Student name.
+   - Email.
+   - Student ID.
+   - Date.
+   - Start time and end time.
+   - Purpose, if applicable.
+
+3. Staff opens MTL Booking.
+
+4. Staff selects or verifies the student.
+
+5. The system checks that the student exists.
+
+6. The system checks the student's remaining MTL time.
+
+7. The system checks approved booking conflicts.
+
+8. The request is submitted and waits for the applicable review process.
+
+9. The authorized staff member reviews the request.
+
+10. The request is approved or rejected.
+
+11. An approved request becomes a confirmed MTL booking.
+
+Flow summary:
+
+    Student
+       |
+       | Provides student and schedule details
+       v
+    Student Assistant, Music Dean, or Administrator
+       |
+       | Enters request
+       v
+    System checks student, time remaining, and conflicts
+       |
+       v
+    Pending request and review
+       |
+       +------------------+
+       |                  |
+       v                  v
+    Approved           Rejected
+       |                  |
+       v                  v
+    Confirmed MTL      Not confirmed
+    reservation
+
+WHY MTL USES THIS PROCESS
+-------------------------
+MTL time is linked to the student's record. The system needs the student ID to
+check remaining time and make sure the booking is valid. That makes the staff
+booking form more suitable for scheduled MTL reservations than the current
+RFID resource workflow.
+
+WORKFLOW C: STUDENT USES RFID RESOURCES
+---------------------------------------
+This workflow is for cubicles, instruments, audio-visual equipment, and tools.
+It is not the current workflow for Cecilia Hall or MTL scheduled reservations.
+
+1. Student logs in first at the browser or self-service station.
+
+2. Student opens a normal system page. The RFID scanner component is loaded in
+the application layout.
+
+3. Student scans the RFID card.
+
+4. The system receives the UID and searches for a matching student record.
+
+5. The system returns the scanned student's active resource bookings, if any.
+
+6. If the student needs a resource, the student chooses an available cubicle,
+   instrument, or tool.
+
+7. The system validates availability and booking rules.
+
+8. The resource booking becomes active.
+
+9. The student uses the resource.
+
+10. The student scans again later to see their active resource bookings and
+    select a booking to return or time out.
+
+The student does not need to scan continuously. Scanning is an action trigger,
+not a connection that must remain active.
+
+The RFID response is limited to the scanned student's own active resource
+bookings. It does not show other students' bookings and does not provide a
+personal view of Cecilia Hall or MTL schedules.
+
+RFID FLOW WITHOUT HARDWARE
+--------------------------
+A USB RFID reader normally behaves like a keyboard. It types the UID and sends
+Enter. For testing without a reader:
+
+1. Log in as Student Panel.
+2. Click an empty area so no input field is focused.
+3. Type a valid UID, for example:
+
+       00203595
+
+4. Press Enter.
+5. Continue through the booking or timeout choices.
+
+The RFID endpoint requires an authenticated session for browser testing. A
+physical scanner deployment may instead use a Sanctum API token.
+
+WHO DOES WHAT: SIMPLE EXAMPLE
+-----------------------------
+Example: a student wants Cecilia Hall from 1:00 PM to 3:00 PM.
+
+Student:
+- Requests the time and explains the purpose.
+
+Student Assistant:
+- Enters the student's information and submits the request.
+
+System:
+- Validates the details.
+- Checks for conflicts.
+- Saves the request as pending.
+
+Music Dean:
+- Reviews the request.
+- Approves or rejects it.
+
+System:
+- Shows the approved booking on the calendar, or keeps the rejected request
+  out of confirmed bookings.
+
+Example: a student wants to borrow an instrument.
+
+Student:
+- Logs in and scans RFID.
+
+System:
+- Identifies the student and shows the permitted resource choices.
+
+Student:
+- Selects the instrument and confirms.
+
+System:
+- Records the active booking against that student.
+
+Student:
+- Scans again when finished and selects the active booking to time out.
+
+WHY THE STUDENT AND STAFF FLOWS ARE SEPARATE
+--------------------------------------------
+The two flows solve different problems.
+
+Staff web flow:
+- Best for planned reservations.
+- Captures detailed booking information.
+- Supports date/time scheduling.
+- Supports conflict checking.
+- Supports approval and rejection.
+- Provides accountability for facility use.
+
+Student RFID flow:
+- Best for quick on-site resource use.
+- Identifies the student at the point of use.
+- Reduces manual data entry.
+- Shows only the student's own active resource bookings.
+- Supports quick borrowing and returning.
+
+This separation is intended to make the system easier for students while
+keeping scheduled facilities and administrative decisions under staff control.
+
+DEMO ORDER FOR EXPLAINING THE COLLABORATION
+-------------------------------------------
+1. Start with a student request.
+2. Show the Student Assistant entering the request.
+3. Show the pending status.
+4. Switch to Music Dean and approve or reject the request.
+5. Show the resulting calendar status.
+6. Explain that an Administrator maintains the data and system structure.
+7. Switch to Student Panel.
+8. Log in and simulate an RFID scan.
+9. Book a cubicle, instrument, or tool.
+10. Scan again and demonstrate timeout.
+11. End by explaining that students do not see other students' active RFID
+    bookings or staff-only scheduled booking information.
+
+FINAL EXPLANATION
+-----------------
+Say:
+
+"The student, Student Assistant, Music Dean, and Administrator work together,
+but they do not perform the same action. The student provides the need. The
+Student Assistant can prepare and submit a request. The system validates and
+records it. The Music Dean makes the approval decision. The Administrator
+maintains the system and its data. For quick resource use, the student can work
+independently through RFID without waiting for a staff member, but only for the
+resource types supported by that workflow."

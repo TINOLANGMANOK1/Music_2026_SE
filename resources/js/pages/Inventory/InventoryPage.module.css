@@ -1,0 +1,338 @@
+.container {
+  max-width: 1200px;
+  margin: 40px;
+  padding: 50px 50px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.container h1 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.description {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: normal;
+  transition: all 0.3s ease;
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.filterBtn:hover {
+  background-color: #fce7f3;
+  color: #555;
+}
+
+.filterBtn.active {
+  background-color: #FF6692;
+  color: white;
+}
+
+.filterBtn.active:hover {
+  background-color: #e65c85;
+}
+
+.chartsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.chartWrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+.chartTitle {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.btnBorrowed {
+  background-color: #FF6692;
+  color: white;
+}
+
+.btnBorrowed:hover {
+  background-color: #e65c85;
+}
+
+.btnAdd {
+  background-color: #FF6692;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 102, 146, 0.2);
+}
+
+.btnAdd:hover {
+  background-color: #E65C85;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 102, 146, 0.3);
+}
+
+.searchBox {
+  width: 250px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.tableContainer {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: #f5f5f5;
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.statusIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.statusGreen {
+  background-color: #2ecc71;
+}
+
+.statusRed {
+  background-color: #FF6692;
+}
+
+.editIcon {
+  cursor: pointer;
+  color: #3498db;
+  margin-left: 5px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+}
+
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.modal .instrumentImage {
+  margin-bottom: 15px;
+}
+
+.modal p {
+  margin-bottom: 10px;
+}
+
+.modal p:last-of-type {
+  margin-bottom: 20px; /* Add space before the button */
+}
+
+.statusYellow {
+  background-color: #DAA520;
+}
+
+.statusGray {
+  background-color: #808080;
+}
+
+.detailsIcon {
+  cursor: pointer;
+  color: #95a5a6;
+  margin-left: 10px;
+}
+
+.instrumentImage {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.barcodeContainer {
+  display: flex;
+  align-items: center;
+}
+
+.filtersBox {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: .8px solid rgb(222, 222, 222);
+}
+
+.filtersHeader {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.filtersHeader svg {
+  margin-right: 10px;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filterForm {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.filterGroup label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+  font-size: 1em;
+}
+
+.customSelectWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.customSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.customSelect:hover,
+.customSelect:focus {
+  border: 1.5px solid #FF6692;
+  outline: none;
+}
+
+.customSelectWrapper::after {
+  content: '▼';
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #888;
+}
+
+.iconPink {
+  color: #FF6692;
+}
+
+.detailsModalCloseBtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  background-color: #FF6692;
+  color: white;
+}
+
+.detailsModalCloseBtn:hover {
+  background-color: #e65b84;
+}
