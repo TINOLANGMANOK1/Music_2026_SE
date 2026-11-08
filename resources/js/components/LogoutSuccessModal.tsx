@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
 
 interface LogoutSuccessModalProps {
     isOpen: boolean;

@@ -1,22 +1,9 @@
-import { NavFooter } from '@/components/nav-footer';
-import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
-import { cn } from '@/lib/utils';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { type NavItem } from '@/types';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
+import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Home, Clock, BarChart, Users, Package, Wrench, UserCog, Building2, Calendar } from 'lucide-react';
+import { BookOpen, Home, Clock, BarChart, Users, Package, UserCog, Building2, Calendar } from 'lucide-react';
 import AppLogo from './app-logo';
-import AppLogoIcon from './app-logo-icon';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 const menuNavItems: NavItem[] = [
     {
@@ -79,15 +66,13 @@ const cubicleNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
+    const { auth } = usePage<SharedData>().props;
     const user = auth.user;
     const page = usePage();
 
     const isStudentAssistant = user?.role === 'Student Assistant';
     const isStudentPanel = user?.role === 'Student Panel';
     const isAdministratorOrMusicDean = user?.role === 'Administrator' || user?.role === 'Music Dean';
-    const getInitials = useInitials();
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

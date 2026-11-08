@@ -3,11 +3,13 @@ import { Head } from '@inertiajs/react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { Clock, Filter } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious, PaginationFirst, PaginationLast } from '@/components/ui/pagination';
 import { cn } from '@/lib/utils';
+import { invalidateResourceAndActivityPrefetches } from '@/lib/bookingPrefetch';
+import { type SharedData } from '@/types';
 
 const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
@@ -143,7 +145,9 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
 
         router.post(endpoint, payload, {
             onSuccess: (page) => {
-                setTimeoutMessage((page.props.flash as any)?.success || 'Timed out successfully!');
+                invalidateResourceAndActivityPrefetches();
+                const flash = page.props.flash as SharedData['flash'];
+                setTimeoutMessage(flash?.success || 'Timed out successfully!');
                 let itemDetails: ItemDetails | undefined = undefined;
                 if (type === 'cubicle') {
                     itemDetails = cubicles.find(c => c.cubicle_id === id);
@@ -206,9 +210,6 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
         setShowFailureModal(false);
         setTimeoutMessage('');
         setTimeoutDetails(null);
-        router.reload({ 
-            only: ['cubicles', 'musicalInstruments', 'audioVisualEquipment', 'toolsByCategory', 'allInstrumentsForFilter'] 
-        });
     };
 
     const renderCubicleTable = (cubicles: CubicleData[], title: string) => (
@@ -615,13 +616,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationPrevious 
-                                                    href={musicalInstruments.current_page === 1 ? "#" : `${musicalInstruments.prev_page_url}&filter=Instruments&office=${selectedType}` || "#"} 
+                                                    href={musicalInstruments.current_page === 1 ? "#" : `${musicalInstruments.prev_page_url}&filter=Instruments&office=${selectedType}`}
                                                     onClick={(e) => {
                                                         if (musicalInstruments.current_page === 1) {
                                                             e.preventDefault();
                                                         } else {
                                                             e.preventDefault();
-                                                            router.get(`${musicalInstruments.prev_page_url}&filter=Instruments&office=${selectedType}` || "#");
+                                                            router.get(`${musicalInstruments.prev_page_url}&filter=Instruments&office=${selectedType}`);
                                                         }
                                                     }}
                                                 />
@@ -631,13 +632,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationNext 
-                                                    href={musicalInstruments.current_page === musicalInstruments.last_page ? "#" : `${musicalInstruments.next_page_url}&filter=Instruments&office=${selectedType}` || "#"} 
+                                                    href={musicalInstruments.current_page === musicalInstruments.last_page ? "#" : `${musicalInstruments.next_page_url}&filter=Instruments&office=${selectedType}`}
                                                     onClick={(e) => {
                                                         if (musicalInstruments.current_page === musicalInstruments.last_page) {
                                                             e.preventDefault();
                                                         } else {
                                                             e.preventDefault();
-                                                            router.get(`${musicalInstruments.next_page_url}&filter=Instruments&office=${selectedType}` || "#");
+                                                            router.get(`${musicalInstruments.next_page_url}&filter=Instruments&office=${selectedType}`);
                                                         }
                                                     }}
                                                 />
@@ -688,13 +689,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationPrevious 
-                                                    href={audioVisualEquipment.current_page === 1 ? "#" : `${audioVisualEquipment.prev_page_url}&filter=Instruments&office=${selectedType}` || "#"} 
+                                                    href={audioVisualEquipment.current_page === 1 ? "#" : `${audioVisualEquipment.prev_page_url}&filter=Instruments&office=${selectedType}`}
                                                     onClick={(e) => {
                                                         if (audioVisualEquipment.current_page === 1) {
                                                             e.preventDefault();
                                                         } else {
                                                             e.preventDefault();
-                                                            router.get(`${audioVisualEquipment.prev_page_url}&filter=Instruments&office=${selectedType}` || "#");
+                                                            router.get(`${audioVisualEquipment.prev_page_url}&filter=Instruments&office=${selectedType}`);
                                                         }
                                                     }}
                                                 />
@@ -704,13 +705,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationNext 
-                                                    href={audioVisualEquipment.current_page === audioVisualEquipment.last_page ? "#" : `${audioVisualEquipment.next_page_url}&filter=Instruments&office=${selectedType}` || "#"} 
+                                                    href={audioVisualEquipment.current_page === audioVisualEquipment.last_page ? "#" : `${audioVisualEquipment.next_page_url}&filter=Instruments&office=${selectedType}`}
                                                     onClick={(e) => {
                                                         if (audioVisualEquipment.current_page === audioVisualEquipment.last_page) {
                                                             e.preventDefault();
                                                         } else {
                                                             e.preventDefault();
-                                                            router.get(`${audioVisualEquipment.next_page_url}&filter=Instruments&office=${selectedType}` || "#");
+                                                            router.get(`${audioVisualEquipment.next_page_url}&filter=Instruments&office=${selectedType}`);
                                                         }
                                                     }}
                                                 />
@@ -776,13 +777,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                                 </PaginationItem>
                                                 <PaginationItem>
                                                     <PaginationPrevious 
-                                                        href={paginatedTools.current_page === 1 ? "#" : `${paginatedTools.prev_page_url}&filter=Tools&office=${selectedType}` || "#"} 
+                                                        href={paginatedTools.current_page === 1 ? "#" : `${paginatedTools.prev_page_url}&filter=Tools&office=${selectedType}`}
                                                         onClick={(e) => {
                                                             if (paginatedTools.current_page === 1) {
                                                                 e.preventDefault();
                                                             } else {
                                                                 e.preventDefault();
-                                                                router.get(`${paginatedTools.prev_page_url}&filter=Tools&office=${selectedType}` || "#");
+                                                                router.get(`${paginatedTools.prev_page_url}&filter=Tools&office=${selectedType}`);
                                                             }
                                                         }}
                                                     />
@@ -792,13 +793,13 @@ export default function Resources({ cubicles, musicalInstruments, audioVisualEqu
                                                 </PaginationItem>
                                                 <PaginationItem>
                                                     <PaginationNext 
-                                                        href={paginatedTools.current_page === paginatedTools.last_page ? "#" : `${paginatedTools.next_page_url}&filter=Tools&office=${selectedType}` || "#"} 
+                                                        href={paginatedTools.current_page === paginatedTools.last_page ? "#" : `${paginatedTools.next_page_url}&filter=Tools&office=${selectedType}`}
                                                         onClick={(e) => {
                                                             if (paginatedTools.current_page === paginatedTools.last_page) {
                                                                 e.preventDefault();
                                                             } else {
                                                                 e.preventDefault();
-                                                                router.get(`${paginatedTools.next_page_url}&filter=Tools&office=${selectedType}` || "#");
+                                                                router.get(`${paginatedTools.next_page_url}&filter=Tools&office=${selectedType}`);
                                                             }
                                                         }}
                                                     />

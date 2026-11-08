@@ -62,16 +62,10 @@ class MTLBooking extends Model
     // Check if booking conflicts with approved bookings
     public static function hasConflict($date, $startTime, $endTime, $excludeId = null)
     {
-        $query = self::where('date', $date)
+        $query = self::whereDate('date', $date)
             ->where('status', 'approved')
-            ->where(function($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                  ->orWhereBetween('end_time', [$startTime, $endTime])
-                  ->orWhere(function($subQ) use ($startTime, $endTime) {
-                      $subQ->where('start_time', '<=', $startTime)
-                           ->where('end_time', '>=', $endTime);
-                  });
-            });
+            ->where('start_time', '<', $endTime)
+            ->where('end_time', '>', $startTime);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);

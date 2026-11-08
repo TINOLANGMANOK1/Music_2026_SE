@@ -11,9 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('assets')) {
+            return;
+        }
+
         Schema::table('assets', function (Blueprint $table) {
-            $table->text('repair_description')->nullable()->after('description');
-            $table->string('repair_image')->nullable()->after('repair_description');
+            if (!Schema::hasColumn('assets', 'repair_description')) {
+                $table->text('repair_description')->nullable()->after('description');
+            }
+            if (!Schema::hasColumn('assets', 'repair_image')) {
+                $table->string('repair_image')->nullable()->after('repair_description');
+            }
         });
     }
 
@@ -22,8 +30,19 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('assets')) {
+            return;
+        }
+
         Schema::table('assets', function (Blueprint $table) {
-            $table->dropColumn(['repair_description', 'repair_image']);
+            $columns = array_filter(
+                ['repair_description', 'repair_image'],
+                fn (string $column): bool => Schema::hasColumn('assets', $column)
+            );
+
+            if ($columns !== []) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };

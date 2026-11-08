@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cubicle_usage_logs', function (Blueprint $table) {
+        if (!Schema::hasTable('cubicle_usage_logs')) {
+            Schema::create('cubicle_usage_logs', function (Blueprint $table) {
             $table->id();
             $table->string('student_id');
             $table->string('cubicle_id');
@@ -22,9 +23,11 @@ return new class extends Migration
 
             $table->foreign('student_id')->references('student_id')->on('student')->onDelete('cascade');
             $table->foreign('cubicle_id')->references('cubicle_id')->on('cubicle_info')->onDelete('cascade');
-        });
+            });
+        }
 
-        Schema::create('instrument_usage_logs', function (Blueprint $table) {
+        if (!Schema::hasTable('instrument_usage_logs')) {
+            Schema::create('instrument_usage_logs', function (Blueprint $table) {
             $table->id();
             $table->string('student_id');
             $table->string('instrument_id');
@@ -35,9 +38,11 @@ return new class extends Migration
 
             $table->foreign('student_id')->references('student_id')->on('student')->onDelete('cascade');
             $table->foreign('instrument_id')->references('instrument_id')->on('instrument_info')->onDelete('cascade');
-        });
+            });
+        }
 
-        Schema::create('tool_usage_logs', function (Blueprint $table) {
+        if (!Schema::hasTable('tool_usage_logs')) {
+            Schema::create('tool_usage_logs', function (Blueprint $table) {
             $table->id();
             $table->string('student_id');
             $table->string('tool_id');
@@ -48,7 +53,8 @@ return new class extends Migration
 
             $table->foreign('student_id')->references('student_id')->on('student')->onDelete('cascade');
             $table->foreign('tool_id')->references('tool_id')->on('tools_info')->onDelete('cascade');
-        });
+            });
+        }
     }
 
     /**

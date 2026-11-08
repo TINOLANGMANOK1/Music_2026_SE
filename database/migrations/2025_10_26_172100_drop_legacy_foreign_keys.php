@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return;
+        }
+
         // Drop foreign keys from tool_usage
         try {
             DB::statement('ALTER TABLE tool_usage DROP FOREIGN KEY tool_usage_tool_id_foreign');

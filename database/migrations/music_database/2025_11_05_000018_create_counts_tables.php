@@ -11,23 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cubicle_counts', function (Blueprint $table) {
+        if (!Schema::hasTable('cubicle_counts')) {
+            Schema::create('cubicle_counts', function (Blueprint $table) {
             $table->id();
             $table->string('cubicle_id');
             $table->integer('usage_count')->default(0);
             $table->timestamps();
 
             $table->foreign('cubicle_id')->references('cubicle_id')->on('cubicle_info')->onDelete('cascade');
-        });
+            });
+        }
 
-        Schema::create('instrument_counts', function (Blueprint $table) {
+        if (!Schema::hasTable('instrument_counts')) {
+            Schema::create('instrument_counts', function (Blueprint $table) {
             $table->id();
             $table->string('instrument_id');
             $table->integer('usage_count')->default(0);
             $table->timestamps();
 
             $table->foreign('instrument_id')->references('instrument_id')->on('instrument_info')->onDelete('cascade');
-        });
+            });
+        }
     }
 
     /**

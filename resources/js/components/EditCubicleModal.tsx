@@ -25,7 +25,7 @@ export default function EditCubicleModal({ isOpen, onClose, cubicle, onDelete }:
     const [formData, setFormData] = useState({
         status: cubicle.status,
     });
-    const [errors, setErrors] = useState<any>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [processing, setProcessing] = useState(false);
 
     // Update form data when cubicle changes

@@ -14,19 +14,11 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import SuccessModal from '@/components/SuccessModal';
 import { User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface UserData {
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    role: string;
-    profile_picture_path: string | null;
-}
+import { type SharedData, type User as UserData } from '@/types';
 
 export default function Account() {
-    const { auth } = usePage().props as any;
-    const user = auth.user as UserData; // Cast to UserData
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
 
     const [userData, setUserData] = useState<UserData | null>(user);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +30,7 @@ export default function Account() {
     const [isConfirmRemovePhotoModalOpen, setIsConfirmRemovePhotoModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState('Your profile picture has been successfully updated.');
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'management'>('profile');
 
     const getInitials = useInitials(); // Assuming useInitials is available
@@ -62,7 +54,7 @@ export default function Account() {
                 // Force a full page reload to get updated data
                 router.reload({ only: ['auth'] });
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 setMessage({ type: 'error', text: errors.profile_picture || 'Failed to upload profile picture.' });
                 event.target.value = ''; // Clear the file input
             },
@@ -99,7 +91,7 @@ export default function Account() {
                 setIsSuccessModalOpen(true);
                 router.reload({ only: ['auth'] });
             },
-            onError: (errors: any) => {
+            onError: () => {
                 setMessage({ type: 'error', text: 'Failed to remove profile picture.' });
             },
             preserveScroll: true,

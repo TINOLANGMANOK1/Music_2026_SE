@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone')->nullable()->change();
+            if (!Schema::hasColumn('users', 'phone')) {
+                $table->string('phone')->nullable();
+            } else {
+                $table->string('phone')->nullable()->change();
+            }
         });
     }
 
@@ -21,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('users') || !Schema::hasColumn('users', 'phone')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             $table->string('phone')->nullable(false)->change();
         });

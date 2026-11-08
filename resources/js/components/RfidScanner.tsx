@@ -14,6 +14,9 @@ import FailureModal from '@/components/FailureModal';
 import StudentActivityLogModal from '@/components/StudentActivityLogModal';
 import UnrecognizedStudentModal from '@/components/UnrecognizedStudentModal';
 import { Square, Guitar, Wrench } from 'lucide-react';
+import { type BookingFailureResult, type BookingResult } from '@/types';
+import { invalidateResourceAndActivityPrefetches } from '@/lib/bookingPrefetch';
+import { type ActivityLogEntry } from './StudentActivityLogModal';
 
 // Define a more specific type for a booking
 interface Booking {
@@ -30,6 +33,16 @@ interface Student {
     year?: number;
     sec?: string;
     mtl_time_remaining?: number;
+}
+
+interface BookingStudentInfo {
+    student_id: string;
+    first_name: string;
+    last_name: string;
+    rfid_uid: string;
+    mtl_time_remaining: number;
+    year: number;
+    sec: string;
 }
 
 const RfidScanner: React.FC = () => {
@@ -49,7 +62,8 @@ const RfidScanner: React.FC = () => {
     const [isBorrowInstrumentModalOpen, setIsBorrowInstrumentModalOpen] = useState(false);
     const [isBorrowToolModalOpen, setIsBorrowToolModalOpen] = useState(false);
     const [isRfidBooking, setIsRfidBooking] = useState(false);
-    const [bookingSuccessDetails, setBookingSuccessDetails] = useState<any>(null);
+    const [bookingSuccessDetails, setBookingSuccessDetails] = useState<BookingResult | null>(null);
+    const [completedBookingTypes, setCompletedBookingTypes] = useState<Booking['type'][]>([]);
     const [successType, setSuccessType] = useState<'booking' | 'timeout'>('booking');
     const [timeoutDetails, setTimeoutDetails] = useState<{
         name: string;
@@ -61,14 +75,13 @@ const RfidScanner: React.FC = () => {
     } | null>(null);
     const [isSimpleTimeoutModalOpen, setIsSimpleTimeoutModalOpen] = useState(false);
     const [isFailureModalOpen, setIsFailureModalOpen] = useState(false);
-    const [failureDetails, setFailureDetails] = useState<any>(null);
+    const [failureDetails, setFailureDetails] = useState<BookingFailureResult | null>(null);
     const [showActivityLog, setShowActivityLog] = useState(false);
-    const [activityLogs, setActivityLogs] = useState<any[]>([]);
+    const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
     const [isUnrecognizedStudentModalOpen, setIsUnrecognizedStudentModalOpen] = useState(false);
-    const [unrecognizedStudentId, setUnrecognizedStudentId] = useState<string>('');
     
     // Shared state for combined booking
-    const [sharedStudentInfo, setSharedStudentInfo] = useState<any>(null);
+    const [sharedStudentInfo, setSharedStudentInfo] = useState<BookingStudentInfo | null>(null);
     const [sharedInstrumentIds, setSharedInstrumentIds] = useState<number[]>([]);
     const [sharedToolIds, setSharedToolIds] = useState<number[]>([]);
 
@@ -86,6 +99,7 @@ const RfidScanner: React.FC = () => {
         setIsBorrowToolModalOpen(false);
         setIsRfidBooking(false);
         setBookingSuccessDetails(null);
+        setCompletedBookingTypes([]);
         setSuccessType('booking');
         setTimeoutDetails(null);
         setIsSimpleTimeoutModalOpen(false);
@@ -97,7 +111,6 @@ const RfidScanner: React.FC = () => {
         setSharedInstrumentIds([]);
         setSharedToolIds([]);
         setIsUnrecognizedStudentModalOpen(false);
-        setUnrecognizedStudentId('');
     };
 
     const handleScanSubmit = React.useCallback(async (scannedRfid: string) => {
@@ -128,7 +141,7 @@ const RfidScanner: React.FC = () => {
             const contentType = response.headers.get('content-type');
             
             if (!contentType || !contentType.includes('application/json')) {
-                const responseText = await response.text();
+                await response.text();
                 throw new Error('Session expired or authentication required. Please refresh the page.');
             }
 
@@ -141,7 +154,6 @@ const RfidScanner: React.FC = () => {
 
             // Handle unrecognized student error (404 with specific error type)
             if (!response.ok && data.error_type === 'unrecognized_student') {
-                setUnrecognizedStudentId(data.scanned_id || scannedRfid);
                 setIsUnrecognizedStudentModalOpen(true);
                 return;
             }
@@ -175,11 +187,11 @@ const RfidScanner: React.FC = () => {
             } else {
                 setError('Received invalid data from server.');
             }
-        } catch (err: any) {
-            console.error('Fetch error:', err);
+        } catch (error: unknown) {
+            console.error('Fetch error:', error);
             
             // Auto-refresh on CSRF token mismatch
-            if (err.message && err.message.includes('CSRF token mismatch')) {
+            if (error instanceof Error && error.message.includes('CSRF token mismatch')) {
                 setError('Session expired. Refreshing page...');
                 setTimeout(() => {
                     window.location.reload();
@@ -187,7 +199,7 @@ const RfidScanner: React.FC = () => {
                 return;
             }
             
-            setError(err.message || 'An error occurred while scanning the RFID.');
+            setError(error instanceof Error ? error.message : 'An error occurred while scanning the RFID.');
         } finally {
             setIsProcessing(false);
             setRfid(''); // Clear RFID input after every scan attempt
@@ -278,8 +290,14 @@ const RfidScanner: React.FC = () => {
         });
 
         try {
-            const results = await Promise.all(timeoutPromises);
-            const hasErrors = results.some(res => !res.ok);
+            const results = await Promise.allSettled(timeoutPromises);
+            const hasSuccessfulTimeout = results.some(result => result.status === 'fulfilled' && result.value.ok);
+            const hasErrors = results.some(result => result.status === 'rejected' || !result.value.ok);
+
+            if (hasSuccessfulTimeout) {
+                invalidateResourceAndActivityPrefetches();
+                router.reload();
+            }
 
             if (hasErrors) {
                 throw new Error('One or more bookings could not be timed out.');
@@ -317,8 +335,8 @@ const RfidScanner: React.FC = () => {
                 setSelectionModalOpen(false);
                 setIsSimpleTimeoutModalOpen(true);
             }
-        } catch (err: any) {
-            setError(err.message || 'An error occurred while timing out bookings.');
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : 'An error occurred while timing out bookings.');
         } finally {
             setIsProcessing(false);
         }
@@ -339,7 +357,34 @@ const RfidScanner: React.FC = () => {
         bookings.forEach(booking => {
             bookedTypes.add(booking.type);
         });
+        completedBookingTypes.forEach(type => bookedTypes.add(type));
         return bookedTypes;
+    };
+
+    const handleBookingSuccess = (details: BookingResult) => {
+        const successfulTypes: Booking['type'][] = [];
+        if (details.cubicleType) successfulTypes.push('cubicle');
+        if (details.instrumentType || details.instruments?.length) successfulTypes.push('instrument');
+        if (details.toolType || details.tools?.length) successfulTypes.push('tool');
+
+        setCompletedBookingTypes(current => Array.from(new Set([...current, ...successfulTypes])));
+        setBookingSuccessDetails(details);
+        setSuccessModalOpen(true);
+    };
+
+    const continueBookingForStudent = () => {
+        setSuccessModalOpen(false);
+        setBookingSuccessDetails(null);
+        setBookingTypeToCreate('cubicle');
+    };
+
+    const returnToBookingChoices = () => {
+        setIsFailureModalOpen(false);
+        setFailureDetails(null);
+        setSharedStudentInfo(null);
+        setSharedInstrumentIds([]);
+        setSharedToolIds([]);
+        setBookingTypeToCreate('cubicle');
     };
 
     return (
@@ -368,7 +413,6 @@ const RfidScanner: React.FC = () => {
             <UnrecognizedStudentModal
                 isOpen={isUnrecognizedStudentModalOpen}
                 onClose={resetState}
-                studentId={unrecognizedStudentId}
             />
 
             {/* No Booking Error Modal - Choose what to book */}
@@ -399,7 +443,9 @@ const RfidScanner: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle className="text-xl">What would you like to do?</DialogTitle>
                         <DialogDescription>
-                            Select an option below to book a resource or check your activity log
+                            {completedBookingTypes.length > 0
+                                ? `Choose another action for ${student?.name || 'this student'}, or finish`
+                                : 'Select an option below to book a resource or check your activity log'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid grid-cols-4 gap-4 mb-6">
@@ -502,7 +548,7 @@ const RfidScanner: React.FC = () => {
                                                 // Fetch activity logs and show modal
                                                 try {
                                                     const logsResponse = await fetch(`/api/student-activity-log?student_id=${student.student_id}`);
-                                                    const logsData = await logsResponse.json();
+                                                    const logsData: { logs?: ActivityLogEntry[] } = await logsResponse.json();
                                                     setActivityLogs(logsData.logs || []);
                                                     setShowActivityLog(true);
                                                 } catch (error) {
@@ -522,7 +568,7 @@ const RfidScanner: React.FC = () => {
                         })()}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={resetState}>Cancel</Button>
+                        <Button variant="outline" onClick={resetState}>Finish</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -603,8 +649,9 @@ const RfidScanner: React.FC = () => {
                             resetState();
                         }
                     }}
+                    onContinue={student && getBookingTypesAvailable().size < 3 ? continueBookingForStudent : undefined}
                     type={successType}
-                    bookingDetails={bookingSuccessDetails}
+                    bookingDetails={bookingSuccessDetails ?? undefined}
                 />
             )}
 
@@ -615,7 +662,6 @@ const RfidScanner: React.FC = () => {
                     onClose={() => {
                         setSuccessModalOpen(false);
                         resetState();
-                        router.reload();
                     }}
                     timeoutDetails={timeoutDetails}
                 />
@@ -627,7 +673,6 @@ const RfidScanner: React.FC = () => {
                 onClose={() => {
                     setIsSimpleTimeoutModalOpen(false);
                     resetState();
-                    router.reload();
                 }}
             />
 
@@ -640,7 +685,12 @@ const RfidScanner: React.FC = () => {
                         setFailureDetails(null);
                         resetState();
                     }}
-                    errorMessage={failureDetails.errorMessage}
+                    onBackToChoices={student ? returnToBookingChoices : undefined}
+                    errorMessage={
+                        completedBookingTypes.length > 0
+                            ? `${failureDetails.errorMessage} Earlier successful actions remain saved.`
+                            : failureDetails.errorMessage
+                    }
                     studentDetails={failureDetails.studentDetails}
                 />
             )}
@@ -654,8 +704,7 @@ const RfidScanner: React.FC = () => {
                 }}
                 onBookingSuccess={(details) => {
                     setIsBookCubicleModalOpen(false);
-                    setBookingSuccessDetails(details);
-                    setSuccessModalOpen(true);
+                    handleBookingSuccess(details);
                 }}
                 onBookingFailure={(details) => {
                     setIsBookCubicleModalOpen(false);
@@ -688,8 +737,7 @@ const RfidScanner: React.FC = () => {
                 }}
                 onBookingSuccess={(details) => {
                     setIsBorrowInstrumentModalOpen(false);
-                    setBookingSuccessDetails(details);
-                    setSuccessModalOpen(true);
+                    handleBookingSuccess(details);
                 }}
                 onBookingFailure={(details) => {
                     setIsBorrowInstrumentModalOpen(false);
@@ -729,8 +777,7 @@ const RfidScanner: React.FC = () => {
                 }}
                 onBookingSuccess={(details) => {
                     setIsBorrowToolModalOpen(false);
-                    setBookingSuccessDetails(details);
-                    setSuccessModalOpen(true);
+                    handleBookingSuccess(details);
                 }}
                 onBookingFailure={(details) => {
                     setIsBorrowToolModalOpen(false);

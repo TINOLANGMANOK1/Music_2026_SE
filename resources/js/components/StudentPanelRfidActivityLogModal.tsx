@@ -2,7 +2,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import { useState } from 'react';
-import RfidValidationFailureModal from './RfidValidationFailureModal';
 
 interface StudentPanelRfidActivityLogModalProps {
     isOpen: boolean;
@@ -10,18 +9,12 @@ interface StudentPanelRfidActivityLogModalProps {
 }
 
 export default function StudentPanelRfidActivityLogModal({ isOpen, onClose }: StudentPanelRfidActivityLogModalProps) {
-    const [showFailure, setShowFailure] = useState(false);
     const [isWaitingForRfid, setIsWaitingForRfid] = useState(false);
 
     const handleRfidScan = () => {
         setIsWaitingForRfid(true);
         // This will be handled by the RFID scanner context
         // For now, we'll show a message
-    };
-
-    const handleUnrecognizedRfid = () => {
-        setIsWaitingForRfid(false);
-        setShowFailure(true);
     };
 
     return (
@@ -72,14 +65,6 @@ export default function StudentPanelRfidActivityLogModal({ isOpen, onClose }: St
                     </div>
                 </DialogContent>
             </Dialog>
-
-            <RfidValidationFailureModal
-                isOpen={showFailure}
-                onClose={() => {
-                    setShowFailure(false);
-                    onClose();
-                }}
-            />
         </>
     );
 }

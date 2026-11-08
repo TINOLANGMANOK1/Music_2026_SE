@@ -1,27 +1,22 @@
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { BarChart, XAxis, YAxis, Bar, PieChart, Pie, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, AreaChart, Area, CartesianGrid } from 'recharts';
-import { CalendarIcon, Square, Guitar, Wrench, Plus } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
-import { useState, useEffect, useMemo } from 'react';
+import { BarChart, XAxis, YAxis, Bar, PieChart, Pie, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, CartesianGrid } from 'recharts';
+import { Square, Guitar, Wrench, Plus } from 'lucide-react';
+import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { useState, useEffect } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import BookCubicleModal from '@/components/BookCubicleModal';
 import BorrowInstrumentModal from '@/components/BorrowInstrumentModal';
 import BorrowToolModal from '@/components/BorrowToolModal';
-import StudentPanelRfidBookingModal from '@/components/StudentPanelRfidBookingModal';
-import StudentPanelRfidActivityLogModal from '@/components/StudentPanelRfidActivityLogModal';
 import SuccessModal from '@/components/SuccessModal';
 import FailureModal from '@/components/FailureModal';
 import LoginSuccessModal from '@/components/LoginSuccessModal';
 import { useModalContext } from '@/contexts/ModalContext';
-import { type SharedData } from '@/types';
+import { type BookingFailureResult, type BookingResult, type SharedData } from '@/types';
 import {
-    ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
@@ -140,40 +135,11 @@ interface DashboardProps {
     semesterBookings: SemesterBookingsData;
 }
 
-interface WeeklyToolUsageData {
-    item_type: string;
-    usage_count: number;
-}
-
-const chartConfig = {
-    cubicles: {
-      label: "Cubicles",
-      color: "#0088FE",
-    },
-    instruments: {
-      label: "Instruments",
-      color: "#00C49F",
-    },
-    mtl: {
-      label: "MTL",
-      color: "#FFBB28",
-    },
-  } satisfies ChartConfig
-
-const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1919'];
-
-export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsage, weeklyUsageTrend, combinedConditions, assetChart, ceciliaHallBookings, mtlBookings, availableSemesters, currentSemester, semesterBookings }: DashboardProps) {
+export default function Dashboard({ stats, utilizationByYear, cubicleUsage, weeklyUsageTrend, combinedConditions, assetChart, ceciliaHallBookings, mtlBookings, availableSemesters, currentSemester }: DashboardProps) {
     const page = usePage<SharedData>();
     const auth = page.props.auth;
     const [showLoginSuccess, setShowLoginSuccess] = useState(false);
     const [userName, setUserName] = useState('');
-    
-    const [cubicleInstrumentFromDate, setCubicleInstrumentFromDate] = useState<Date | null>(startOfWeek(new Date(), { weekStartsOn: 1 }));
-    const [cubicleInstrumentToDate, setCubicleInstrumentToDate] = useState<Date | null>(endOfWeek(new Date(), { weekStartsOn: 1 }));
-    const [weeklyUsageData, setWeeklyUsageData] = useState<WeeklyUsageData[]>([]);
-    const [equipmentFromDate, setEquipmentFromDate] = useState<Date | null>(startOfWeek(new Date(), { weekStartsOn: 1 }));
-    const [equipmentToDate, setEquipmentToDate] = useState<Date | null>(endOfWeek(new Date(), { weekStartsOn: 1 }));
-    const [weeklyToolUsageData, setWeeklyToolUsageData] = useState<WeeklyToolUsageData[]>([]);
     
     // Cubicle usage by week state
     const [cubicleUsageFromDate, setCubicleUsageFromDate] = useState<Date | null>(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -209,65 +175,22 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
         }
     }, [auth?.user]);
 
-    useEffect(() => {
-        const fetchWeeklyToolUsage = async () => {
-            if (equipmentFromDate && equipmentToDate) {
-                try {
-                    const response = await fetch(`/api/dashboard-chart/weekly-tool-usage?startDate=${format(equipmentFromDate, 'yyyy-MM-dd')}&endDate=${format(equipmentToDate, 'yyyy-MM-dd')}`);
-                    const data = await response.json();
-                    setWeeklyToolUsageData(data);
-                } catch (error) {
-                    console.error('Error fetching weekly tool usage data:', error);
-                }
-            }
-        };
-
-        fetchWeeklyToolUsage();
-
-        const interval = setInterval(() => {
-            fetchWeeklyToolUsage();
-        }, 30000); // 30 seconds
-
-        return () => clearInterval(interval);
-    }, [equipmentFromDate, equipmentToDate]);
-
-    const equipmentChartData = useMemo(() => {
-        if (weeklyToolUsageData.length === 0) {
-            return [{ name: 'None', value: 1 }];
-        }
-        return weeklyToolUsageData.map(d => ({ name: d.item_type, value: d.usage_count }));
-    }, [weeklyToolUsageData]);
-
-    useEffect(() => {
-        const fetchWeeklyUsage = async () => {
-            if (cubicleInstrumentFromDate && cubicleInstrumentToDate) {
-                try {
-                    const response = await fetch(`/api/dashboard-chart/weekly-usage?startDate=${format(cubicleInstrumentFromDate, 'yyyy-MM-dd')}&endDate=${format(cubicleInstrumentToDate, 'yyyy-MM-dd')}`);
-                    const data = await response.json();
-                    setWeeklyUsageData(data);
-                } catch (error) {
-                    console.error('Error fetching weekly usage data:', error);
-                }
-            }
-        };
-
-        fetchWeeklyUsage();
-
-        const interval = setInterval(() => {
-            fetchWeeklyUsage();
-        }, 30000); // 30 seconds
-
-        return () => clearInterval(interval);
-    }, [cubicleInstrumentFromDate, cubicleInstrumentToDate]);
-
     const [isBookCubicleModalOpen, setIsBookCubicleModalOpen] = useState(false);
     const [isBorrowInstrumentModalOpen, setIsBorrowInstrumentModalOpen] = useState(false);
     const [isBorrowToolModalOpen, setIsBorrowToolModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-    const [bookingDetails, setBookingDetails] = useState<unknown | null>(null);
+    const [bookingDetails, setBookingDetails] = useState<BookingResult | null>(null);
     const [isFailureModalOpen, setIsFailureModalOpen] = useState(false);
-    const [failureDetails, setFailureDetails] = useState<unknown | null>(null);
-    const [sharedStudentInfo, setSharedStudentInfo] = useState<any>(null);
+    const [failureDetails, setFailureDetails] = useState<BookingFailureResult | null>(null);
+    const [sharedStudentInfo, setSharedStudentInfo] = useState<{
+        student_id: string;
+        first_name: string;
+        last_name: string;
+        rfid_uid: string;
+        mtl_time_remaining: number;
+        year: number;
+        sec: string;
+    } | null>(null);
     const [sharedInstrumentIds, setSharedInstrumentIds] = useState<number[]>([]);
     const [sharedToolIds, setSharedToolIds] = useState<number[]>([]);
     const [isFabOpen, setIsFabOpen] = useState(false);
@@ -279,11 +202,7 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
         setIsAnyBorrowModalOpen(anyBorrowModalOpen);
     }, [isBookCubicleModalOpen, isBorrowInstrumentModalOpen, isBorrowToolModalOpen, setIsAnyBorrowModalOpen]);
 
-    const getCount = (category: 'cubicles' | 'instruments' | 'tools', type: string, countType: 'total_count' | 'available_count') => {
-        return counts[category][type]?.[countType] || 0;
-    };
-
-    const handleBookingSuccess = (details: unknown) => {
+    const handleBookingSuccess = (details: BookingResult) => {
         setIsBookCubicleModalOpen(false);
         setIsBorrowInstrumentModalOpen(false);
         setIsBorrowToolModalOpen(false);
@@ -291,83 +210,12 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
         setIsSuccessModalOpen(true);
     };
 
-    const handleBookingFailure = (details: unknown) => {
+    const handleBookingFailure = (details: BookingFailureResult) => {
         setIsBookCubicleModalOpen(false);
         setIsBorrowInstrumentModalOpen(false);
         setIsBorrowToolModalOpen(false);
         setFailureDetails(details);
         setIsFailureModalOpen(true);
-    };
-
-    const handleCubicleInstrumentWeekSelect = (value: string) => {
-        const today = new Date();
-        let start: Date | null = null;
-        let end: Date | null = null;
-
-        switch (value) {
-            case "thisWeek":
-                start = startOfWeek(today, { weekStartsOn: 1 }); // Week starts on Monday
-                end = endOfWeek(today, { weekStartsOn: 1 });   // Week ends on Sunday
-                break;
-            case "lastWeek":
-                const lastWeek = new Date();
-                lastWeek.setDate(today.getDate() - 7);
-                start = startOfWeek(lastWeek, { weekStartsOn: 1 });
-                end = endOfWeek(lastWeek, { weekStartsOn: 1 });
-                break;
-            case "twoWeeksAgo":
-                const twoWeeksAgo = new Date();
-                twoWeeksAgo.setDate(today.getDate() - 14);
-                start = startOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
-                end = endOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
-                break;
-            case "threeWeeksAgo":
-                const threeWeeksAgo = new Date();
-                threeWeeksAgo.setDate(today.getDate() - 21);
-                start = startOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
-                end = endOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
-                break;
-            default:
-                break;
-        }
-        console.log(start, end);
-        setCubicleInstrumentFromDate(start);
-        setCubicleInstrumentToDate(end);
-    };
-
-    const handleEquipmentWeekSelect = (value: string) => {
-        const today = new Date();
-        let start: Date | null = null;
-        let end: Date | null = null;
-
-        switch (value) {
-            case "thisWeek":
-                start = startOfWeek(today, { weekStartsOn: 1 }); // Week starts on Monday
-                end = endOfWeek(today, { weekStartsOn: 1 });   // Week ends on Sunday
-                break;
-            case "lastWeek":
-                const lastWeek = new Date();
-                lastWeek.setDate(today.getDate() - 7);
-                start = startOfWeek(lastWeek, { weekStartsOn: 1 });
-                end = endOfWeek(lastWeek, { weekStartsOn: 1 });
-                break;
-            case "twoWeeksAgo":
-                const twoWeeksAgo = new Date();
-                twoWeeksAgo.setDate(today.getDate() - 14);
-                start = startOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
-                end = endOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
-                break;
-            case "threeWeeksAgo":
-                const threeWeeksAgo = new Date();
-                threeWeeksAgo.setDate(today.getDate() - 21);
-                start = startOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
-                end = endOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
-                break;
-            default:
-                break;
-        }
-        setEquipmentFromDate(start);
-        setEquipmentToDate(end);
     };
 
     const handleCubicleUsageWeekSelect = (value: string) => {
@@ -380,24 +228,27 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                 start = startOfWeek(today, { weekStartsOn: 1 });
                 end = endOfWeek(today, { weekStartsOn: 1 });
                 break;
-            case "lastWeek":
+            case "lastWeek": {
                 const lastWeek = new Date();
                 lastWeek.setDate(today.getDate() - 7);
                 start = startOfWeek(lastWeek, { weekStartsOn: 1 });
                 end = endOfWeek(lastWeek, { weekStartsOn: 1 });
                 break;
-            case "twoWeeksAgo":
+            }
+            case "twoWeeksAgo": {
                 const twoWeeksAgo = new Date();
                 twoWeeksAgo.setDate(today.getDate() - 14);
                 start = startOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
                 end = endOfWeek(twoWeeksAgo, { weekStartsOn: 1 });
                 break;
-            case "threeWeeksAgo":
+            }
+            case "threeWeeksAgo": {
                 const threeWeeksAgo = new Date();
                 threeWeeksAgo.setDate(today.getDate() - 21);
                 start = startOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
                 end = endOfWeek(threeWeeksAgo, { weekStartsOn: 1 });
                 break;
+            }
             default:
                 break;
         }
@@ -596,8 +447,8 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                                                     preserveState: true,
                                                     preserveScroll: true,
                                                     only: ['utilizationByYear'],
-                                                    onSuccess: (page: any) => {
-                                                        setUtilizationData(page.props.utilizationByYear);
+                                                    onSuccess: (page) => {
+                                                        setUtilizationData(page.props.utilizationByYear as UtilizationData[]);
                                                     }
                                                 });
                                             }}
@@ -963,7 +814,14 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                                         <CardTitle>Equipment Conditions</CardTitle>
                                         <p className="text-sm text-muted-foreground">Recent maintenance</p>
                                     </div>
-                                    <Select value={conditionFilter} onValueChange={(value: any) => setConditionFilter(value)}>
+                                    <Select
+                                        value={conditionFilter}
+                                        onValueChange={(value) => {
+                                            if (value === 'all' || value === 'asset' || value === 'cubicle') {
+                                                setConditionFilter(value);
+                                            }
+                                        }}
+                                    >
                                         <SelectTrigger className="w-[110px] h-8 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -1048,7 +906,7 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                 }}
                 onBookingSuccess={handleBookingSuccess}
                 onBookingFailure={handleBookingFailure}
-                preFilledStudent={sharedStudentInfo}
+                preFilledStudent={sharedStudentInfo ?? undefined}
                 onStudentInfoChange={setSharedStudentInfo}
                 preFilledInstrumentIds={sharedInstrumentIds}
                 preFilledToolIds={sharedToolIds}
@@ -1070,7 +928,7 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                 }}
                 onBookingSuccess={handleBookingSuccess}
                 onBookingFailure={handleBookingFailure}
-                preFilledStudent={sharedStudentInfo}
+                preFilledStudent={sharedStudentInfo ?? undefined}
                 onStudentInfoChange={setSharedStudentInfo}
                 preFilledInstrumentIds={sharedInstrumentIds}
                 preFilledToolIds={sharedToolIds}
@@ -1089,7 +947,7 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                         setIsSuccessModalOpen(false);
                         setBookingDetails(null);
                     }}
-                    bookingDetails={bookingDetails as any}
+                    bookingDetails={bookingDetails}
                 />
             )}
 
@@ -1101,8 +959,8 @@ export default function Dashboard({ counts, stats, utilizationByYear, cubicleUsa
                         setIsFailureModalOpen(false);
                         setFailureDetails(null);
                     }}
-                    errorMessage={(failureDetails as any)?.errorMessage}
-                    studentDetails={(failureDetails as any)?.studentDetails}
+                    errorMessage={failureDetails.errorMessage}
+                    studentDetails={failureDetails.studentDetails}
                 />
             )}
 

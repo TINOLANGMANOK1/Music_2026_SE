@@ -31,15 +31,27 @@ import {
     Clock,
     User,
     X,
-    BarChart3,
     ChevronDown,
     Trash2,
-    Info,
-    CheckCircle,
-    XCircle
 } from 'lucide-react';
-import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks, startOfDay, addMinutes, isWithinInterval, endOfDay, startOfMonth, endOfMonth, addMonths, subMonths, getDaysInMonth, getDay, endOfWeek } from 'date-fns';
+import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks, startOfDay, isWithinInterval, endOfDay, startOfMonth, endOfMonth, addMonths, subMonths, endOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
+
+interface CeciliaBookingRecord {
+    id: number | string;
+    name: string;
+    email: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    purpose?: string | null;
+    status: string;
+    rejection_reason?: string | null;
+    booker_type?: 'music_department' | 'external';
+    letter_url?: string | null;
+    cancellation_reason?: string | null;
+    rejected_at?: string | null;
+}
 
 interface TimeSlot {
     id: string;
@@ -58,8 +70,8 @@ interface TimeSlot {
 }
 
 interface CeciliaHallProps {
-    bookings?: any[];
-    rejectedBookings?: any[];
+    bookings?: CeciliaBookingRecord[];
+    rejectedBookings?: CeciliaBookingRecord[];
     auth?: {
         user?: {
             role?: string;
@@ -197,11 +209,11 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                     email: booking.email,
                     date: booking.date,
                     time: `${format(startDate, 'h:mm a')} - ${format(endDate, 'h:mm a')}`,
-                    purpose: booking.purpose,
+                    purpose: booking.purpose || undefined,
                     bookerType: booking.booker_type,
-                    letterUrl: booking.letter_url,
+                    letterUrl: booking.letter_url || undefined,
                     status: status,
-                    cancellationReason: booking.cancellation_reason,
+                    cancellationReason: booking.cancellation_reason || undefined,
                 };
             });
             setMockBookings(converted);
@@ -375,11 +387,6 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             return isWithinInterval(bookingDate, { start: dayStart, end: dayEnd }) && 
                    (booking.status === 'booked' || booking.status === 'completed');
         });
-    };
-
-    // Check if booking is in the past
-    const isBookingPast = (booking: TimeSlot) => {
-        return booking.end.getTime() < new Date().getTime();
     };
 
     // Handle day click in month view
@@ -722,7 +729,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
     }, [mockBookings]);
 
     // Helper: format booking time range into 12-hour format using booking.date
-    const formatBookingTime = (b: any) => {
+    const formatBookingTime = (b: CeciliaBookingRecord) => {
         try {
             const base = parseISO(b.date);
             const startParts = (b.start_time || '').split(':').map((n: string) => parseInt(n, 10));
@@ -734,7 +741,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             e.setHours(endParts[0] || 0, endParts[1] || 0, endParts[2] || 0, 0);
 
             return `${format(s, 'h:mm a')} - ${format(e, 'h:mm a')}`;
-        } catch (err) {
+        } catch {
             return `${b.start_time || ''} - ${b.end_time || ''}`;
         }
     };
@@ -744,11 +751,11 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
         if (!rejectedBookings || rejectedBookings.length === 0) return [];
         const weekStart = startOfDay(rejectedWeekStart);
         const weekEnd = endOfDay(addDays(rejectedWeekStart, 6));
-        return rejectedBookings.filter((b: any) => {
+        return rejectedBookings.filter((b) => {
             try {
                 const d = parseISO(b.date);
                 return isWithinInterval(startOfDay(d), { start: weekStart, end: weekEnd });
-            } catch (e) {
+            } catch {
                 return false;
             }
         });
@@ -1822,7 +1829,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                             {(!rejectedWeekFiltered || rejectedWeekFiltered.length === 0) ? (
                                 <div className="p-6 text-center text-muted-foreground">No rejected bookings for this week.</div>
                             ) : (
-                                rejectedWeekFiltered.map((booking: any) => (
+                                rejectedWeekFiltered.map((booking: CeciliaBookingRecord) => (
                                     <div key={booking.id} className="p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/10 hover:bg-red-100 dark:hover:bg-red-950/20 transition-colors">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
@@ -1864,7 +1871,11 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                         <div className="pt-2 border-t border-red-200 dark:border-red-800">
                                             <p className="text-xs text-muted-foreground mb-1">Rejection Reason:</p>
                                             <p className="text-sm text-red-700 dark:text-red-400 italic break-words break-all whitespace-pre-wrap max-h-28 overflow-y-auto">{booking.rejection_reason}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">Rejected on: {format(parseISO(booking.rejected_at), 'MMM d, yyyy HH:mm')}</p>
+                                            {booking.rejected_at && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    Rejected on: {format(parseISO(booking.rejected_at), 'MMM d, yyyy HH:mm')}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))

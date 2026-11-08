@@ -1,0 +1,163 @@
+MUSIC DEPARTMENT SYSTEM - QUICK REFERENCE
+=========================================
+
+ABOUT THE SYSTEM
+----------------
+The Music System supports department facility scheduling and day-to-day
+management of music resources. It keeps student records, booking requests,
+resource availability, approvals, and usage activity in one web application.
+
+Main features:
+- Scheduled Cecilia Hall reservations with calendar and Dean review.
+- Scheduled Music Technology Lab (MTL) reservations with student-time checks.
+- RFID self-service for cubicles, instruments, audio-visual equipment, and
+  tools, including return/timeout.
+- Student and user account management.
+- Inventory and cubicle configuration.
+- Activity logs, notifications, and reports.
+
+TECHNOLOGY STACK
+----------------
+- Backend: PHP 8.2 or newer and Laravel 12. Laravel handles server-side
+  requests, validation, authentication, authorization, and database access.
+- Frontend: TypeScript and React 19. Inertia.js connects the React pages to
+  Laravel routes and controllers.
+- Styling and UI: Tailwind CSS 4 and reusable React UI components.
+- Database: MySQL for the configured application database. Automated tests
+  also use SQLite where configured.
+- Build tooling: Vite 7 bundles frontend assets.
+- Authentication: Laravel session authentication for the web app. Sanctum
+  tokens are available for token-authenticated RFID integrations; ordinary
+  browser RFID testing uses a signed-in web session.
+
+USER ROLES
+----------
+Student records and application login accounts are separate. A student is
+identified in resource self-service by the RFID UID stored on their student
+record. The application login roles are Administrator, Music Dean, Student
+Assistant, and Student Panel.
+
+Administrator
+- Maintains user accounts, student information, inventory, and cubicle
+  configuration.
+- Can create scheduled bookings and access reports and administrative pages.
+- Can review MTL requests through the administrative workflow.
+- Cannot approve or reject Cecilia Hall requests; that action is restricted
+  to the Music Dean.
+
+Music Dean
+- Creates and reviews department bookings.
+- Approves or rejects Cecilia Hall and MTL requests.
+- Has administrative access to manage resources, student information, users,
+  reports, and cubicle configuration.
+- Is the only role allowed to approve or reject Cecilia Hall requests.
+
+Student Assistant
+- Helps students by entering Cecilia Hall and MTL booking requests.
+- Can use the resource booking and RFID workflows and view operational
+  information such as resources.
+- Cannot approve or reject scheduled requests.
+- Cannot manage users, inventory configuration, or cubicle configuration,
+  and does not have the administrative reports/approval access.
+
+Student Panel
+- Provides a simplified self-service station for authenticated RFID use.
+- Scans a student's RFID card to show that student's active resource usage
+  or available cubicle, instrument, and tool choices.
+- Can create resource bookings and return/time out active resource bookings.
+- Does not use the normal staff Cecilia Hall or MTL booking forms.
+- Cannot manage students, users, inventory, approvals, or system configuration.
+
+Access is enforced by application routes and server-side checks as well as by
+the pages and menus shown to each role. Exact access can change as the system
+is updated.
+
+TEST LOGIN IDENTIFIERS
+----------------------
+These email addresses were listed in the previous local testing guide. Their
+availability and assigned roles must be checked in the database/environment
+where you are testing; account lists can differ between local and deployed
+systems.
+
+Music Dean:        emoreno@uic.edu.ph
+Student Assistant: jaurelio_230000001583@uic.edu.ph
+Administrator:     rpastrana_230000001763@uic.edu.ph
+Student Panel:     student_panel@uic.edu.ph
+Student Assistant: student_assistant@uic.edu.ph
+
+Passwords are intentionally not stored in this repository document. The
+passwords shown by older testing notes may be outdated or unsafe to reuse.
+Check your private local test-account record or ask an administrator to reset
+the account password. Do not put real or shared passwords in a tracked file,
+commit them, or use test passwords in production.
+
+CORE WORKFLOWS
+--------------
+
+1. CECILIA HALL RESERVATION
+   a. A student provides the requested date, times, purpose, and other required
+      details to staff.
+   b. An Administrator, Music Dean, or Student Assistant submits the booking
+      request.
+   c. The system validates the request and checks schedule conflicts. External
+      bookings may require a supporting letter.
+   d. The request is pending until the Music Dean approves or rejects it.
+   e. Approved requests appear as confirmed bookings; rejected requests are
+      not confirmed and retain their decision information.
+
+2. MTL RESERVATION
+   a. Staff selects or verifies the student and enters the requested schedule
+      and purpose.
+   b. The system checks the student record, remaining MTL time, and conflicts
+      with approved bookings.
+   c. The request is submitted as pending.
+   d. An Administrator or Music Dean reviews it through the authorized MTL
+      workflow and approves or rejects it.
+   e. Approved use is tracked against the student's MTL time; expired sessions
+      are completed by the scheduled completion workflow.
+
+3. RFID RESOURCE BOOKING
+   a. Sign in at the authorized browser/station. A USB keyboard-wedge reader
+      types the card UID and commonly sends Enter; the app can also be tested
+      by typing a known test UID and pressing Enter.
+   b. The system matches the UID to a student record and displays that
+      student's active resource bookings or available choices.
+   c. Choose a cubicle, instrument, or tool, complete the existing booking
+      form, and confirm. The system checks availability and records the
+      resource as in use.
+   d. After a successful action, the RFID flow can offer "Add another action"
+      for the same student, so another category can be booked without rescanning.
+      Each action saves independently; a later failure does not undo an earlier
+      successful booking.
+   e. Choose Finish/Confirm to end the flow. When the student is done using a
+      resource, scan the card again, select the active booking, and confirm the
+      return/timeout. The resource then becomes available according to its
+      workflow.
+
+   RFID self-service is for cubicles, instruments, and tools, not for scheduled
+   Cecilia Hall or MTL reservations. A scan only reveals active resource
+   bookings for the matching student; it is not a student-wide schedule view.
+
+4. INVENTORY AND RESOURCE ADMINISTRATION
+   Administrators and Music Deans maintain assets, availability, and cubicle
+   setup. A resource must be configured and available before it can be booked.
+   Operational staff use the booking workflows rather than changing resource
+   configuration.
+
+5. RETURN AND ACTIVITY TRACKING
+   A return/timeout closes an active resource use and updates availability.
+   Usage and booking information is recorded for activity views and reports.
+   Scheduled facility bookings use their own pending, approved, rejected, and
+   completed status flow.
+
+SAFE TESTING NOTES
+------------------
+- Use a dedicated test database, student, RFID card, and future schedule slots.
+- Verify the test account and student/card mapping in the environment you are
+  using before testing. Do not assume local accounts or data exist in
+  production.
+- Do not use a production student record or real booking for a demo.
+- Never share passwords, API tokens, database exports, or private student data
+  in this document or in a public repository.
+- This file describes the current code paths at a high level. Check current
+  route/controller permissions when changing access rules.

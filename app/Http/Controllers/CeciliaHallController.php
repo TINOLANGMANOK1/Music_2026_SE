@@ -157,24 +157,9 @@ class CeciliaHallController extends Controller
         if ($validated['status'] === 'approved') {
             $conflictingBookings = CeciliaHallBooking::where('id', '!=', $bookingModel->id)
                 ->where('status', 'pending')
-                ->where('date', $bookingModel->date)
-                ->where(function($query) use ($bookingModel) {
-                    $query->where(function($q) use ($bookingModel) {
-                        // Conflict: existing booking starts during this booking
-                        $q->where('start_time', '<', $bookingModel->end_time)
-                          ->where('start_time', '>=', $bookingModel->start_time);
-                    })
-                    ->orWhere(function($q) use ($bookingModel) {
-                        // Conflict: existing booking ends during this booking
-                        $q->where('end_time', '>', $bookingModel->start_time)
-                          ->where('end_time', '<=', $bookingModel->end_time);
-                    })
-                    ->orWhere(function($q) use ($bookingModel) {
-                        // Conflict: existing booking completely encompasses this booking
-                        $q->where('start_time', '<=', $bookingModel->start_time)
-                          ->where('end_time', '>=', $bookingModel->end_time);
-                    });
-                })
+                ->whereDate('date', $bookingModel->date)
+                ->where('start_time', '<', $bookingModel->end_time)
+                ->where('end_time', '>', $bookingModel->start_time)
                 ->get();
 
             foreach ($conflictingBookings as $conflicting) {
@@ -192,8 +177,8 @@ class CeciliaHallController extends Controller
         $bookingModel->update([
             'status' => $validated['status'],
             'rejection_reason' => $validated['rejection_reason'] ?? null,
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
+            'approved_by' => $validated['status'] === 'approved' ? auth()->id() : null,
+            'approved_at' => $validated['status'] === 'approved' ? now() : null,
         ]);
 
         $message = 'Booking has been ' . $validated['status'] . ' successfully.';
@@ -298,6 +283,10 @@ class CeciliaHallController extends Controller
         if (!$booking) {
             \Log::error('Booking not found', ['booking_id' => $bookingId]);
             abort(404, 'Booking not found');
+        }
+
+        if (auth()->user()->role !== 'Music Dean' && strcasecmp(auth()->user()->email, $booking->email) !== 0) {
+            abort(403, 'You are not authorized to view this authorization letter.');
         }
 
         if (!$booking->letter_path) {

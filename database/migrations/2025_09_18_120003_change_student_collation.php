@@ -12,9 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('student', function (Blueprint $table) {
-            DB::statement('ALTER TABLE student CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;');
-        });
+        $this->setCollation('utf8mb4_unicode_ci');
     }
 
     /**
@@ -22,8 +20,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('student', function (Blueprint $table) {
-            DB::statement('ALTER TABLE student CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;');
-        });
+        $this->setCollation('utf8mb4_general_ci');
+    }
+
+    private function setCollation(string $collation): void
+    {
+        if (!Schema::hasTable('student') || !in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return;
+        }
+
+        DB::statement("ALTER TABLE `student` CONVERT TO CHARACTER SET utf8mb4 COLLATE {$collation}");
     }
 };

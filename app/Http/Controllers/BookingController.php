@@ -11,6 +11,7 @@ use App\Models\Instrument;
 use App\Models\Tool;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
@@ -164,14 +165,17 @@ class BookingController extends Controller
                     'status' => 'Active',
                 ]);
 
-                // Insert into instrument_usage
-                DB::table('instrument_usage')->insert([
+                $instrumentUsage = [
                     'student_id' => $studentId,
                     'instrument_id' => $instrumentId,
                     'instrument_no' => (int) $asset->id,
                     'usage_date' => now()->toDateString(),
                     'start_time' => now(),
-                ]);
+                ];
+                if (Schema::hasColumn('instrument_usage', 'borrow_time')) {
+                    $instrumentUsage['borrow_time'] = now();
+                }
+                DB::table('instrument_usage')->insert($instrumentUsage);
 
                 // Update assets status to Borrowed
                 DB::table('assets')->where('id', $instrumentId)->update(['status' => 'Borrowed']);
@@ -209,13 +213,17 @@ class BookingController extends Controller
                 'status' => 'Active',
             ]);
 
-            DB::table('instrument_usage')->insert([
+            $instrumentUsage = [
                 'student_id' => $studentId,
                 'instrument_id' => $instrumentId,
                 'instrument_no' => $instrument->instrument_no,
                 'usage_date' => now()->toDateString(),
                 'start_time' => now(),
-            ]);
+            ];
+            if (Schema::hasColumn('instrument_usage', 'borrow_time')) {
+                $instrumentUsage['borrow_time'] = now();
+            }
+            DB::table('instrument_usage')->insert($instrumentUsage);
 
             DB::table('instrument_info')->where('instrument_id', $instrumentId)->update(['status' => 'Borrowed']);
 
@@ -429,11 +437,18 @@ class BookingController extends Controller
             $timeIn = \Carbon\Carbon::parse($booking->time_in);
             $durationInMinutes = $timeOut->diffInMinutes($timeIn);
 
-            // Update instrument_usage
+            $usageUpdate = ['end_time' => $timeOut];
+            if (Schema::hasColumn('instrument_usage', 'return_time')) {
+                $usageUpdate['return_time'] = $timeOut;
+            }
+            if (Schema::hasColumn('instrument_usage', 'duration')) {
+                $usageUpdate['duration'] = $durationInMinutes;
+            }
+
             DB::table('instrument_usage')
                 ->where('instrument_id', $instrumentId)
                 ->whereNull('end_time')
-                ->update(['end_time' => $timeOut]);
+                ->update($usageUpdate);
 
             // Delete from instrument_bookings
             DB::table('instrument_bookings')
