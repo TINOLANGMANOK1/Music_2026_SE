@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, Upload, X, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { invalidateBookingPrefetches } from '@/lib/bookingPrefetch';
+import { router } from '@inertiajs/react';
 
 interface BookingModalProps {
     open: boolean;
@@ -151,10 +153,8 @@ export function BookingModal({ open, onOpenChange, selectedDate, selectedTime }:
             });
             setLetterFile(null);
             
-            // Reload after a short delay to show the modal
-            setTimeout(() => {
-                window.location.reload();
-            }, 2500);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error submitting booking:', error);
             setErrorMessage(error instanceof Error ? error.message : 'Failed to submit booking request. Please try again.');

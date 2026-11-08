@@ -19,51 +19,6 @@ class MTLController extends Controller
         $user = auth()->user();
         $canBook = $user && in_array($user->role, ['Student Assistant', 'Music Dean', 'Administrator']);
         
-        // Automatically update approved bookings to completed when end time has passed
-        // Also deduct MTL time from students when marking as completed
-        $completedBookings = MTLBooking::where('status', 'approved')
-            ->where(function($query) {
-                $query->where('date', '<', Carbon::today())
-                    ->orWhere(function($q) {
-                        $q->where('date', '=', Carbon::today())
-                          ->whereRaw('TIME(end_time) < TIME(?)', [Carbon::now()->format('H:i:s')]);
-                    });
-            })
-            ->get();
-
-        foreach ($completedBookings as $booking) {
-            // Calculate duration in minutes
-            $startTime = Carbon::parse($booking->start_time);
-            $endTime = Carbon::parse($booking->end_time);
-            $durationMinutes = $startTime->diffInMinutes($endTime);
-
-            // Use student_id from booking if available
-            if ($booking->student_id) {
-                $student = DB::table('student')
-                    ->where('student_id', $booking->student_id)
-                    ->first();
-
-                // Deduct MTL time if student found
-                if ($student) {
-                    $newMtlTime = max(0, $student->mtl_time_remaining - $durationMinutes);
-                    DB::table('student')
-                        ->where('student_id', $student->student_id)
-                        ->update(['mtl_time_remaining' => $newMtlTime]);
-                    
-                    \Log::info('MTL Time Deducted for Completed Booking', [
-                        'student_id' => $student->student_id,
-                        'booking_id' => $booking->id,
-                        'old_mtl_time' => $student->mtl_time_remaining,
-                        'duration_minutes' => $durationMinutes,
-                        'new_mtl_time' => $newMtlTime,
-                    ]);
-                }
-            }
-
-            // Mark booking as completed
-            $booking->update(['status' => 'completed']);
-        }
-        
         // Get all non-rejected bookings
         $bookings = MTLBooking::whereNotIn('status', ['rejected'])
             ->orderBy('date')
@@ -221,24 +176,9 @@ class MTLController extends Controller
         if ($validated['status'] === 'approved') {
             $conflictingBookings = MTLBooking::where('id', '!=', $bookingModel->id)
                 ->where('status', 'pending')
-                ->where('date', $bookingModel->date)
-                ->where(function($query) use ($bookingModel) {
-                    $query->where(function($q) use ($bookingModel) {
-                        // Conflict: existing booking starts during this booking
-                        $q->where('start_time', '<', $bookingModel->end_time)
-                          ->where('start_time', '>=', $bookingModel->start_time);
-                    })
-                    ->orWhere(function($q) use ($bookingModel) {
-                        // Conflict: existing booking ends during this booking
-                        $q->where('end_time', '>', $bookingModel->start_time)
-                          ->where('end_time', '<=', $bookingModel->end_time);
-                    })
-                    ->orWhere(function($q) use ($bookingModel) {
-                        // Conflict: existing booking completely encompasses this booking
-                        $q->where('start_time', '<=', $bookingModel->start_time)
-                          ->where('end_time', '>=', $bookingModel->end_time);
-                    });
-                })
+                ->whereDate('date', $bookingModel->date)
+                ->where('start_time', '<', $bookingModel->end_time)
+                ->where('end_time', '>', $bookingModel->start_time)
                 ->get();
 
             foreach ($conflictingBookings as $conflicting) {
@@ -320,6 +260,8 @@ class MTLController extends Controller
     // Show pending bookings for approval
     public function approvals()
     {
+        abort_unless(in_array(auth()->user()?->role, ['Administrator', 'Music Dean'], true), 403);
+
         $pendingBookings = MTLBooking::where('status', 'pending')
             ->orderBy('date')
             ->orderBy('start_time')

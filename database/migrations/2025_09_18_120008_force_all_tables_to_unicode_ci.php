@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return;
+        }
+
         $tables = [
             'users',
             'cache',
@@ -50,6 +54,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return;
+        }
+
         // Reverting collation changes is complex and might lead to data loss.
         // It's generally not recommended to rollback collation changes unless absolutely necessary.
         // For this specific scenario, we'll leave the down method empty or revert to general_ci if needed.

@@ -13,10 +13,10 @@ import {
     Clock,
     Calendar,
     Mail,
-    User,
     FileText
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { invalidateBookingPrefetches } from '@/lib/bookingPrefetch';
 
 interface MTLBooking {
     id: number;
@@ -32,17 +32,9 @@ interface MTLBooking {
 
 interface MTLApprovalsProps {
     pendingBookings: MTLBooking[];
-    auth: {
-        user: {
-            id: number;
-            name: string;
-            email: string;
-            role: string;
-        };
-    };
 }
 
-export default function MTLApprovals({ pendingBookings, auth }: MTLApprovalsProps) {
+export default function MTLApprovals({ pendingBookings }: MTLApprovalsProps) {
     const [selectedBooking, setSelectedBooking] = useState<MTLBooking | null>(null);
     const [showRejectionModal, setShowRejectionModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -63,6 +55,7 @@ export default function MTLApprovals({ pendingBookings, auth }: MTLApprovalsProp
             const result = await response.json();
 
             if (response.ok) {
+                invalidateBookingPrefetches();
                 router.reload();
             } else {
                 alert(result.error || 'Failed to approve booking');
@@ -95,6 +88,7 @@ export default function MTLApprovals({ pendingBookings, auth }: MTLApprovalsProp
                 setShowRejectionModal(false);
                 setRejectionReason('');
                 setSelectedBooking(null);
+                invalidateBookingPrefetches();
                 router.reload();
             } else {
                 alert(result.error || 'Failed to reject booking');
@@ -111,19 +105,14 @@ export default function MTLApprovals({ pendingBookings, auth }: MTLApprovalsProp
     };
 
     return (
-        <AppLayout
-            header={
-                <div>
-                    <h1 className="text-3xl font-bold mb-2">MTL Booking Approvals</h1>
-                    <p className="text-gray-600">
-                        Review and manage pending MTL booking requests
-                    </p>
-                </div>
-            }
-        >
+        <AppLayout>
             <Head title="MTL Booking Approvals" />
 
             <div className="space-y-6">
+                <header>
+                    <h1 className="mb-2 text-3xl font-bold">MTL Booking Approvals</h1>
+                    <p className="text-gray-600">Review and manage pending MTL booking requests</p>
+                </header>
                 {pendingBookings.length === 0 ? (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">

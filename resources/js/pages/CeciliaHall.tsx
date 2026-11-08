@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,15 +31,28 @@ import {
     Clock,
     User,
     X,
-    BarChart3,
     ChevronDown,
     Trash2,
-    Info,
-    CheckCircle,
-    XCircle
 } from 'lucide-react';
-import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks, startOfDay, addMinutes, isWithinInterval, endOfDay, startOfMonth, endOfMonth, addMonths, subMonths, getDaysInMonth, getDay, endOfWeek } from 'date-fns';
+import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks, startOfDay, isWithinInterval, endOfDay, startOfMonth, endOfMonth, addMonths, subMonths, endOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { invalidateBookingPrefetches } from '@/lib/bookingPrefetch';
+
+interface CeciliaBookingRecord {
+    id: number | string;
+    name: string;
+    email: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    purpose?: string | null;
+    status: string;
+    rejection_reason?: string | null;
+    booker_type?: 'music_department' | 'external';
+    letter_url?: string | null;
+    cancellation_reason?: string | null;
+    rejected_at?: string | null;
+}
 
 interface TimeSlot {
     id: string;
@@ -58,8 +71,8 @@ interface TimeSlot {
 }
 
 interface CeciliaHallProps {
-    bookings?: any[];
-    rejectedBookings?: any[];
+    bookings?: CeciliaBookingRecord[];
+    rejectedBookings?: CeciliaBookingRecord[];
     auth?: {
         user?: {
             role?: string;
@@ -155,8 +168,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
 
     // Convert bookings from backend to TimeSlot format
     useEffect(() => {
-        if (bookings && bookings.length > 0) {
-            const converted = bookings.map(booking => {
+        const converted = bookings.map(booking => {
                 const dateParts = booking.date.split('-');
                 const year = parseInt(dateParts[0]);
                 const month = parseInt(dateParts[1]) - 1;
@@ -197,15 +209,14 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                     email: booking.email,
                     date: booking.date,
                     time: `${format(startDate, 'h:mm a')} - ${format(endDate, 'h:mm a')}`,
-                    purpose: booking.purpose,
+                    purpose: booking.purpose || undefined,
                     bookerType: booking.booker_type,
-                    letterUrl: booking.letter_url,
+                    letterUrl: booking.letter_url || undefined,
                     status: status,
-                    cancellationReason: booking.cancellation_reason,
+                    cancellationReason: booking.cancellation_reason || undefined,
                 };
-            });
-            setMockBookings(converted);
-        }
+        });
+        setMockBookings(converted);
     }, [bookings]);
 
     // Generate time slots for the day (6 AM - 12 AM in 30-minute intervals)
@@ -377,11 +388,6 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
         });
     };
 
-    // Check if booking is in the past
-    const isBookingPast = (booking: TimeSlot) => {
-        return booking.end.getTime() < new Date().getTime();
-    };
-
     // Handle day click in month view
     const handleDayClick = (day: Date) => {
         const dayBookings = getBookingsForDay(day);
@@ -521,9 +527,8 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             setSuccessMessage('Cancelled booking deleted successfully!');
             setShowSuccessModal(true);
             
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error deleting booking:', error);
             alert(error instanceof Error ? error.message : 'An error occurred while deleting the booking.');
@@ -566,10 +571,8 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             setSuccessMessage('Booking deleted successfully!');
             setShowSuccessModal(true);
             
-            // Reload after showing success modal
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error deleting booking:', error);
             alert(error instanceof Error ? error.message : 'Failed to delete booking');
@@ -614,10 +617,8 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             setSuccessMessage('Booking approved successfully!');
             setShowSuccessModal(true);
             
-            // Reload after showing success modal
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error approving booking:', error);
             alert(error instanceof Error ? error.message : 'Failed to approve booking');
@@ -650,10 +651,8 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             setSuccessMessage('Booking approved successfully!');
             setShowSuccessModal(true);
             
-            // Reload after showing success modal
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error approving booking:', error);
             alert(error instanceof Error ? error.message : 'Failed to approve booking');
@@ -695,10 +694,8 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             setSuccessMessage('Booking rejected successfully!');
             setShowSuccessModal(true);
             
-            // Reload after showing success modal
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            invalidateBookingPrefetches();
+            router.reload();
         } catch (error) {
             console.error('Error rejecting booking:', error);
             alert(error instanceof Error ? error.message : 'Failed to reject booking');
@@ -710,19 +707,23 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
     // Get total bookings for current week
     const weekStats = useMemo(() => {
         return {
-            total: currentBookings.length,
-            booked: currentBookings.filter(b => b.status === 'booked').length,
+            total: currentBookings.length + currentPendingBookings.length,
+            booked: currentBookings.filter(b => b.status === 'booked' || b.status === 'completed').length,
             pending: currentPendingBookings.length,
         };
     }, [currentBookings, currentPendingBookings]);
 
     // Get all pending bookings across all dates (including cancelled)
     const allPendingBookings = useMemo(() => {
-        return mockBookings.filter(b => b.status === 'pending' || b.status === 'cancelled');
+        return mockBookings.filter(b => b.status === 'pending');
+    }, [mockBookings]);
+
+    const cancelledBookings = useMemo(() => {
+        return mockBookings.filter(b => b.status === 'cancelled');
     }, [mockBookings]);
 
     // Helper: format booking time range into 12-hour format using booking.date
-    const formatBookingTime = (b: any) => {
+    const formatBookingTime = (b: CeciliaBookingRecord) => {
         try {
             const base = parseISO(b.date);
             const startParts = (b.start_time || '').split(':').map((n: string) => parseInt(n, 10));
@@ -734,7 +735,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
             e.setHours(endParts[0] || 0, endParts[1] || 0, endParts[2] || 0, 0);
 
             return `${format(s, 'h:mm a')} - ${format(e, 'h:mm a')}`;
-        } catch (err) {
+        } catch {
             return `${b.start_time || ''} - ${b.end_time || ''}`;
         }
     };
@@ -744,11 +745,11 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
         if (!rejectedBookings || rejectedBookings.length === 0) return [];
         const weekStart = startOfDay(rejectedWeekStart);
         const weekEnd = endOfDay(addDays(rejectedWeekStart, 6));
-        return rejectedBookings.filter((b: any) => {
+        return rejectedBookings.filter((b) => {
             try {
                 const d = parseISO(b.date);
                 return isWithinInterval(startOfDay(d), { start: weekStart, end: weekEnd });
-            } catch (e) {
+            } catch {
                 return false;
             }
         });
@@ -1266,6 +1267,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
 
                 {/* PENDING REQUESTS TAB */}
                 {activeTab === 'pending' && (
+                    <>
                     <Card className="shadow-sm">
                         <CardHeader className="pb-3 border-b">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -1288,17 +1290,10 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                     {allPendingBookings.map((booking, idx) => (
                                         <div
                                             key={idx}
-                                            className={cn(
-                                                "p-4 border rounded-lg transition-colors",
-                                                booking.status === 'cancelled'
-                                                    ? "border-red-200 bg-red-50/50 hover:bg-red-100/50 dark:bg-red-900/10 dark:border-red-800 dark:hover:bg-red-900/20"
-                                                    : "border-orange-200 bg-orange-50/50 hover:bg-orange-100/50 cursor-pointer dark:border-orange-800 dark:bg-orange-950/30 dark:hover:bg-orange-950/50"
-                                            )}
+                                            className="cursor-pointer rounded-lg border border-orange-200 bg-orange-50/50 p-4 transition-colors hover:bg-orange-100/50 dark:border-orange-800 dark:bg-orange-950/30 dark:hover:bg-orange-950/50"
                                             onClick={() => {
-                                                if (booking.status !== 'cancelled') {
-                                                    setSelectedPendingBooking(booking);
-                                                    setShowPendingDetailsModal(true);
-                                                }
+                                                setSelectedPendingBooking(booking);
+                                                setShowPendingDetailsModal(true);
                                             }}
                                         >
                                             <div className="flex items-start justify-between">
@@ -1316,16 +1311,9 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                                             )}>
                                                                 {booking.bookerType === 'external' ? 'External' : 'Internal'}
                                                             </span>
-                                                            {booking.status === 'cancelled' && (
-                                                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
-                                                                    Cancelled
-                                                                </span>
-                                                            )}
-                                                            {booking.status === 'pending' && (
-                                                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700">
-                                                                    Pending Approval
-                                                                </span>
-                                                            )}
+                                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700">
+                                                                Pending Approval
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
@@ -1367,54 +1355,30 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                                             </Button>
                                                         </div>
                                                     )}
-                                                    {booking.status === 'cancelled' && booking.cancellationReason && (
-                                                        <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/20 rounded border border-red-200">
-                                                            <p className="text-sm text-red-800 dark:text-red-200">
-                                                                <span className="font-medium">Cancellation Reason:</span> {booking.cancellationReason}
-                                                            </p>
-                                                        </div>
-                                                    )}
                                                 </div>
                                                 <div className="flex gap-2 ml-4">
-                                                    {booking.status === 'cancelled' ? (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="border-red-500 text-red-500 hover:bg-red-50"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteCancelledBooking(booking.id);
-                                                            }}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 mr-1" />
-                                                            Delete
-                                                        </Button>
-                                                    ) : (
-                                                        <>
-                                                            <Button
-                                                                size="sm"
-                                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleApprove(booking);
-                                                                }}
-                                                            >
-                                                                Approve
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-red-600 border-red-200 hover:bg-red-50"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedBooking(booking);
-                                                                    setShowRejectModal(true);
-                                                                }}
-                                                            >
-                                                                Reject
-                                                            </Button>
-                                                        </>
-                                                    )}
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleApprove(booking);
+                                                        }}
+                                                    >
+                                                        Approve
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedBooking(booking);
+                                                            setShowRejectModal(true);
+                                                        }}
+                                                    >
+                                                        Reject
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1423,6 +1387,46 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                             )}
                         </CardContent>
                     </Card>
+                    {cancelledBookings.length > 0 && (
+                        <Card className="shadow-sm">
+                            <CardHeader className="pb-3 border-b">
+                                <CardTitle className="text-base font-semibold">Cancelled Bookings ({cancelledBookings.length})</CardTitle>
+                                <p className="text-sm text-muted-foreground mt-1">These bookings were cancelled because they conflicted with an approved booking.</p>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <div className="space-y-4">
+                                    {cancelledBookings.map((booking) => (
+                                        <div key={booking.id} className="flex items-start justify-between rounded-lg border border-red-200 bg-red-50/50 p-4 dark:border-red-800 dark:bg-red-900/10">
+                                            <div>
+                                                <div className="mb-2 flex items-center gap-3">
+                                                    <h3 className="font-semibold text-foreground">{booking.studentName}</h3>
+                                                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-200">
+                                                        Cancelled
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {format(booking.start, 'EEEE, MMMM d, yyyy')} · {format(booking.start, 'h:mm a')} - {format(booking.end, 'h:mm a')}
+                                                </p>
+                                                {booking.cancellationReason && (
+                                                    <p className="mt-2 text-sm text-red-800 dark:text-red-200">{booking.cancellationReason}</p>
+                                                )}
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-red-500 text-red-500 hover:bg-red-50"
+                                                onClick={() => handleDeleteCancelledBooking(booking.id)}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-1" />
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    </>
                 )}
 
                 {/* Pending Booking Details Modal */}
@@ -1822,7 +1826,7 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                             {(!rejectedWeekFiltered || rejectedWeekFiltered.length === 0) ? (
                                 <div className="p-6 text-center text-muted-foreground">No rejected bookings for this week.</div>
                             ) : (
-                                rejectedWeekFiltered.map((booking: any) => (
+                                rejectedWeekFiltered.map((booking: CeciliaBookingRecord) => (
                                     <div key={booking.id} className="p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/10 hover:bg-red-100 dark:hover:bg-red-950/20 transition-colors">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
@@ -1864,7 +1868,11 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                         <div className="pt-2 border-t border-red-200 dark:border-red-800">
                                             <p className="text-xs text-muted-foreground mb-1">Rejection Reason:</p>
                                             <p className="text-sm text-red-700 dark:text-red-400 italic break-words break-all whitespace-pre-wrap max-h-28 overflow-y-auto">{booking.rejection_reason}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">Rejected on: {format(parseISO(booking.rejected_at), 'MMM d, yyyy HH:mm')}</p>
+                                            {booking.rejected_at && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    Rejected on: {format(parseISO(booking.rejected_at), 'MMM d, yyyy HH:mm')}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))
@@ -2162,7 +2170,6 @@ export default function CeciliaHall({ bookings = [], rejectedBookings = [], auth
                                 className="w-full py-4 text-lg font-semibold rounded-xl text-white bg-[#1abc9c] transition duration-300 ease-in-out hover:bg-[#16a085] hover:-translate-y-0.5"
                                 onClick={() => {
                                     setShowSuccessModal(false);
-                                    window.location.reload();
                                 }}
                             >
                                 CONFIRM

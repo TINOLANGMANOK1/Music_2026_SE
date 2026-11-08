@@ -40,14 +40,14 @@ const ResetMTLTimeModal: React.FC<ResetMTLTimeModalProps> = ({ isOpen, onClose, 
         if (isOpen && resetType === 'specific' && students.length === 0) {
             fetchStudents();
         }
-    }, [isOpen, resetType]);
+    }, [isOpen, resetType, students.length]);
 
     const fetchStudents = async () => {
         try {
             const response = await fetch('/api/students/all');
             const data = await response.json();
             setStudents(data);
-        } catch (err) {
+        } catch {
             setError('Failed to load students');
         }
     };
@@ -108,7 +108,7 @@ const ResetMTLTimeModal: React.FC<ResetMTLTimeModalProps> = ({ isOpen, onClose, 
                     onSuccess();
                 }
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 setIsLoading(false);
                 setError(errors.message || 'Failed to reset MTL time');
             },

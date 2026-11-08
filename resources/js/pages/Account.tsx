@@ -12,21 +12,13 @@ import ResetUserPasswordModal from '@/components/ResetUserPasswordModal';
 import ResetMTLTimeModal from '@/components/ResetMTLTimeModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SuccessModal from '@/components/SuccessModal';
-import { User, Users } from 'lucide-react';
+import { Check, Pencil, User, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface UserData {
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    role: string;
-    profile_picture_path: string | null;
-}
+import { type SharedData, type User as UserData } from '@/types';
 
 export default function Account() {
-    const { auth } = usePage().props as any;
-    const user = auth.user as UserData; // Cast to UserData
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
 
     const [userData, setUserData] = useState<UserData | null>(user);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,8 +30,12 @@ export default function Account() {
     const [isConfirmRemovePhotoModalOpen, setIsConfirmRemovePhotoModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState('Your profile picture has been successfully updated.');
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'management'>('profile');
+    const [editingField, setEditingField] = useState<'name' | 'email' | 'phone' | null>(null);
+    const [profileDraft, setProfileDraft] = useState('');
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
 
     const getInitials = useInitials(); // Assuming useInitials is available
 
@@ -62,7 +58,7 @@ export default function Account() {
                 // Force a full page reload to get updated data
                 router.reload({ only: ['auth'] });
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 setMessage({ type: 'error', text: errors.profile_picture || 'Failed to upload profile picture.' });
                 event.target.value = ''; // Clear the file input
             },
@@ -99,7 +95,7 @@ export default function Account() {
                 setIsSuccessModalOpen(true);
                 router.reload({ only: ['auth'] });
             },
-            onError: (errors: any) => {
+            onError: () => {
                 setMessage({ type: 'error', text: 'Failed to remove profile picture.' });
             },
             preserveScroll: true,
@@ -109,6 +105,98 @@ export default function Account() {
     const openChangePasswordModal = () => {
         setIsChangePasswordModalOpen(true);
     };
+
+    const startEditingField = (field: 'name' | 'email' | 'phone') => {
+        setEditingField(field);
+        setProfileDraft(userData?.[field] ?? '');
+        setProfileError(null);
+    };
+
+    const cancelEditingField = () => {
+        setEditingField(null);
+        setProfileDraft('');
+        setProfileError(null);
+    };
+
+    const saveProfileField = () => {
+        if (!userData || !editingField) return;
+
+        const values = {
+            name: userData.name,
+            email: userData.email,
+            phone: userData.phone ?? '',
+            [editingField]: profileDraft.trim(),
+        };
+
+        setIsSavingProfile(true);
+        setProfileError(null);
+
+        router.patch(
+            '/settings/profile',
+            {
+                name: values.name,
+                email: values.email,
+                phone: values.phone || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setEditingField(null);
+                    setProfileDraft('');
+                },
+                onError: (errors) => {
+                    setProfileError(errors[editingField] || 'Unable to save this profile field.');
+                },
+                onFinish: () => setIsSavingProfile(false),
+            },
+        );
+    };
+
+    const renderEditableField = (field: 'name' | 'email' | 'phone', label: string, value: string, type = 'text') => (
+        <div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+                <label htmlFor={`account-${field}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {label}
+                </label>
+                {editingField !== field && (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Edit ${label.toLowerCase()}`}
+                        onClick={() => startEditingField(field)}
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+            {editingField === field ? (
+                <>
+                    <Input
+                        id={`account-${field}`}
+                        type={type}
+                        value={profileDraft}
+                        onChange={(event) => setProfileDraft(event.target.value)}
+                        disabled={isSavingProfile}
+                        autoFocus
+                    />
+                    <div className="mt-2 flex items-center gap-2">
+                        <Button type="button" size="sm" onClick={saveProfileField} disabled={isSavingProfile}>
+                            <Check className="mr-1 h-4 w-4" />
+                            Save
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={cancelEditingField} disabled={isSavingProfile}>
+                            <X className="mr-1 h-4 w-4" />
+                            Cancel
+                        </Button>
+                    </div>
+                    {profileError && <p className="mt-1 text-sm text-destructive">{profileError}</p>}
+                </>
+            ) : (
+                <Input id={`account-${field}`} value={value} readOnly />
+            )}
+        </div>
+    );
 
     return (
         <AppLayout>
@@ -195,22 +283,15 @@ export default function Account() {
                             <CardTitle>Basic Information</CardTitle>
                             <CardDescription>Your personal account details</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">NAME</label>
-                                <Input id="name" value={userData?.name || ''} readOnly />
-                            </div>
-                            <div>
-                                <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">ROLE</label>
-                                <Input id="role" value={userData?.role || ''} readOnly />
-                            </div>
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">EMAIL</label>
-                                <Input id="email" value={userData?.email || ''} readOnly />
-                            </div>
-                            <div>
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">PHONE NO.</label>
-                                <Input id="phone" value={userData?.phone || ''} readOnly />
+                        <CardContent>
+                            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {renderEditableField('name', 'NAME', userData?.name || '')}
+                                <div>
+                                    <label htmlFor="role" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">ROLE</label>
+                                    <Input id="role" value={userData?.role || ''} readOnly />
+                                </div>
+                                {renderEditableField('email', 'EMAIL', userData?.email || '', 'email')}
+                                {renderEditableField('phone', 'PHONE NO.', userData?.phone || '', 'tel')}
                             </div>
                         </CardContent>
                     </Card>

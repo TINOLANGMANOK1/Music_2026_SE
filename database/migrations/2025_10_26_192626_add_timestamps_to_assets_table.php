@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('assets') || Schema::hasColumn('assets', 'created_at')) {
+            return;
+        }
+
         Schema::table('assets', function (Blueprint $table) {
             $table->timestamps(); // Adds created_at and updated_at columns
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('assets') || !Schema::hasColumn('assets', 'created_at')) {
+            return;
+        }
+
         Schema::table('assets', function (Blueprint $table) {
             $table->dropTimestamps();
         });

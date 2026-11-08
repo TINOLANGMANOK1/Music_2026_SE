@@ -17,6 +17,7 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
+        ->from(route('profile.edit'))
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -38,6 +39,7 @@ test('email verification status is unchanged when the email address is unchanged
 
     $response = $this
         ->actingAs($user)
+        ->from(route('profile.edit'))
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
@@ -48,6 +50,40 @@ test('email verification status is unchanged when the email address is unchanged
         ->assertRedirect(route('profile.edit'));
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+test('profile phone number can be updated or cleared', function () {
+    $user = User::factory()->create([
+        'phone' => '5551234',
+        'role' => 'Student Panel',
+    ]);
+    $originalRole = $user->role;
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('account'))
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '5556789',
+            'role' => 'Administrator',
+        ]);
+
+    $response->assertSessionHasNoErrors()->assertRedirect(route('account'));
+    expect($user->refresh()->phone)->toBe('5556789');
+    expect($user->role)->toBe($originalRole);
+
+    $this->actingAs($user)
+        ->from(route('account'))
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => null,
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('account'));
+
+    expect($user->refresh()->phone)->toBeNull();
 });
 
 test('user can delete their account', function () {

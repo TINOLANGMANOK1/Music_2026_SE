@@ -163,6 +163,16 @@ To access Railway console:
 2. Click **"⋮"** menu
 3. Select **"Shell"**
 
+### Run the Laravel Scheduler
+
+MTL booking completion and time deduction run from Laravel's scheduler every minute. Keep a separate Railway service running the same application code and environment variables with this start command:
+
+```bash
+php artisan schedule:work
+```
+
+For local development, run the same command in a separate terminal. Without an active scheduler process, expired MTL bookings will remain approved and their time will not be deducted.
+
 ## 🔐 Security Checklist for Production
 
 - [ ] `APP_DEBUG=false` in Railway

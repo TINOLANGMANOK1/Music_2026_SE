@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('student')) {
+            return;
+        }
+
         Schema::create('student', function (Blueprint $table) {
             $table->string('student_id', 50)->primary();
             $table->string('rfid_uid', 255)->nullable()->unique();

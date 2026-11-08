@@ -4,15 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Filter } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious, PaginationFirst, PaginationLast } from '@/components/ui/pagination';
 import AddCubicleModal from '@/components/AddCubicleModal';
 import EditCubicleModal from '@/components/EditCubicleModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SuccessModal from '@/components/SuccessModal';
-import { cn } from '@/lib/utils';
+import { type SharedData } from '@/types';
 
 interface Cubicle {
     cubicle_id: number;
@@ -59,7 +59,7 @@ const getStatusColor = (status: string): string => {
 };
 
 export default function ManageCubicles({ cubicles, allCubicles, filters, openId }: ManageCubiclesProps) {
-    const { flash } = usePage().props as any;
+    const { flash } = usePage<SharedData>().props;
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -70,35 +70,29 @@ export default function ManageCubicles({ cubicles, allCubicles, filters, openId 
     const [searchQuery, setSearchQuery] = useState(filters.search);
     const [filterType, setFilterType] = useState<string>(filters.type);
     const [filterStatus, setFilterStatus] = useState<string>(filters.status);
+    const processedOpenIdRef = useRef<string | null>(null);
 
     // Handle opening cubicle from dashboard via backend openId prop
     useEffect(() => {
-        if (openId) {
-            const cubicle = cubicles.data.find(c => c.cubicle_id === parseInt(openId));
-            if (cubicle) {
-                setTimeout(() => {
-                    handleEdit(cubicle);
-                    // Clear openId from URL to prevent it from persisting
-                    const currentParams = new URLSearchParams(window.location.search);
-                    currentParams.delete('openId');
-                    const newUrl = currentParams.toString() 
-                        ? `${window.location.pathname}?${currentParams.toString()}`
-                        : window.location.pathname;
-                    window.history.replaceState({}, '', newUrl);
-                }, 100);
-            }
-        }
-    }, [openId]);
+        if (!openId || processedOpenIdRef.current === openId) return;
 
-    // Custom pagination handler to ensure openId is never included
-    const handlePagination = (url: string | null) => {
-        if (!url) return;
-        
-        const urlObj = new URL(url);
-        urlObj.searchParams.delete('openId');
-        
-        router.get(urlObj.pathname + urlObj.search);
-    };
+        const cubicle = cubicles.data.find(c => c.cubicle_id === parseInt(openId));
+        if (!cubicle) return;
+
+        processedOpenIdRef.current = openId;
+        const timeout = setTimeout(() => {
+            handleEdit(cubicle);
+            // Clear openId from URL to prevent it from persisting
+            const currentParams = new URLSearchParams(window.location.search);
+            currentParams.delete('openId');
+            const newUrl = currentParams.toString()
+                ? `${window.location.pathname}?${currentParams.toString()}`
+                : window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }, 100);
+
+        return () => clearTimeout(timeout);
+    }, [openId, cubicles.data]);
 
     // Apply filters to backend when they change
     useEffect(() => {
@@ -153,10 +147,6 @@ export default function ManageCubicles({ cubicles, allCubicles, filters, openId 
             });
         }
     };
-
-    // Get unique types and statuses for filters
-    const types = ['All', ...new Set(cubicles.data.map(c => c.cubicle_type))];
-    const statuses = ['All', ...new Set(cubicles.data.map(c => c.status))];
 
     return (
         <AppLayout>

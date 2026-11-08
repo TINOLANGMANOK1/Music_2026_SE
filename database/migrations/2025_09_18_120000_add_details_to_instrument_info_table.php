@@ -11,11 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('instrument_info')) {
+            return;
+        }
+
         Schema::table('instrument_info', function (Blueprint $table) {
-            $table->string('brand')->nullable()->after('status');
-            $table->text('description')->nullable()->after('brand');
-            $table->string('image_url')->nullable()->after('description');
-            $table->string('barcode')->nullable()->after('image_url');
+            if (!Schema::hasColumn('instrument_info', 'brand')) {
+                $table->string('brand')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('instrument_info', 'description')) {
+                $table->text('description')->nullable()->after('brand');
+            }
+            if (!Schema::hasColumn('instrument_info', 'image_url')) {
+                $table->string('image_url')->nullable()->after('description');
+            }
+            if (!Schema::hasColumn('instrument_info', 'barcode')) {
+                $table->string('barcode')->nullable()->after('image_url');
+            }
         });
     }
 
@@ -24,8 +36,19 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('instrument_info')) {
+            return;
+        }
+
         Schema::table('instrument_info', function (Blueprint $table) {
-            $table->dropColumn(['brand', 'description', 'image_url', 'barcode']);
+            $columns = array_filter(
+                ['brand', 'description', 'image_url', 'barcode'],
+                fn (string $column): bool => Schema::hasColumn('instrument_info', $column)
+            );
+
+            if ($columns !== []) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };

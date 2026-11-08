@@ -25,7 +25,7 @@ export default function AddCubicleModal({ isOpen, onClose, cubicles = [] }: AddC
         cubicle_type: 'Guitar',
         status: 'Available',
     });
-    const [errors, setErrors] = useState<any>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [processing, setProcessing] = useState(false);
 
     // Calculate the next cubicle number for the selected type

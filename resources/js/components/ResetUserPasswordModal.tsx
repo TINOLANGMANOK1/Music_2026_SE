@@ -17,10 +17,17 @@ interface ResetUserPasswordModalProps {
     preselectedUser?: { id: number; name: string; email: string } | null;
 }
 
+interface UserOption {
+    id: number;
+    name: string;
+    role?: string;
+    email: string;
+}
+
 export default function ResetUserPasswordModal({ isOpen, onClose, preselectedUser }: ResetUserPasswordModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [users, setUsers] = useState<Array<{ id: number; name: string; role: string; email: string }>>([]);
-    const [selectedUser, setSelectedUser] = useState<{ id: number; name: string; role?: string; email: string } | null>(preselectedUser || null);
+    const [users, setUsers] = useState<UserOption[]>([]);
+    const [selectedUser, setSelectedUser] = useState<UserOption | null>(preselectedUser || null);
     const [isSearching, setIsSearching] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -45,14 +52,14 @@ export default function ResetUserPasswordModal({ isOpen, onClose, preselectedUse
             if (!response.ok) throw new Error('Failed to search users');
             const data = await response.json();
             setUsers(data);
-        } catch (err) {
+        } catch {
             setError('Failed to search users');
         } finally {
             setIsSearching(false);
         }
     };
 
-    const handleSelectUser = (user: any) => {
+    const handleSelectUser = (user: UserOption) => {
         setSelectedUser(user);
         setSearchTerm(user.name);
         setUsers([]);
@@ -78,7 +85,7 @@ export default function ResetUserPasswordModal({ isOpen, onClose, preselectedUse
                         setSuccess(null);
                     }, 2000);
                 },
-                onError: (errors: any) => {
+                onError: (errors) => {
                     setError(errors.message || 'Failed to reset password');
                 },
                 onFinish: () => {

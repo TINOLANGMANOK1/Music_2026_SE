@@ -65,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(['admin', 'throttle:10,1'])
         ->name('mtl-booking.destroy');
     Route::get('/mtl-booking/approvals', [MTLController::class, 'approvals'])
+        ->middleware('admin')
         ->name('mtl-booking.approvals');
 
     Route::get('/activity-log', [ActivityLogController::class, 'index'])

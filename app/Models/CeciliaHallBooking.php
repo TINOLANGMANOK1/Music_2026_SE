@@ -32,16 +32,10 @@ class CeciliaHallBooking extends Model
     public function hasConflict(): bool
     {
         return self::where('id', '!=', $this->id ?? 0)
-            ->where('date', $this->date)
+            ->whereDate('date', $this->date)
             ->where('status', 'approved')
-            ->where(function ($query) {
-                $query->whereBetween('start_time', [$this->start_time, $this->end_time])
-                    ->orWhereBetween('end_time', [$this->start_time, $this->end_time])
-                    ->orWhere(function ($q) {
-                        $q->where('start_time', '<=', $this->start_time)
-                          ->where('end_time', '>=', $this->end_time);
-                    });
-            })
+            ->where('start_time', '<', $this->end_time)
+            ->where('end_time', '>', $this->start_time)
             ->exists();
     }
 

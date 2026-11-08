@@ -6,14 +6,9 @@ import { AlertCircle } from 'lucide-react';
 interface UnrecognizedStudentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    studentId?: string;
 }
 
-const UnrecognizedStudentModal: React.FC<UnrecognizedStudentModalProps> = ({
-    isOpen,
-    onClose,
-    studentId
-}) => {
+const UnrecognizedStudentModal: React.FC<UnrecognizedStudentModalProps> = ({ isOpen, onClose }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-md">

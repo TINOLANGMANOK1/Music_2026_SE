@@ -4,11 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth/auth-simple-layout';
 import { home } from '@/routes';
-import { Head, useForm, Link, router } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { LoaderCircle, Eye, EyeOff } from 'lucide-react';
 import { type FormEventHandler, useState, useEffect } from 'react';
 import LoginSuccessModal from '@/components/LoginSuccessModal';
-import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 
 interface LoginProps {
     status?: string;
@@ -38,9 +37,9 @@ export default function Login({ status, canResetPassword, loginSuccess }: LoginP
 
     // Handle rate limiting countdown
     useEffect(() => {
-        const errorsAny = errors as any;
-        if (errorsAny.lockout_seconds) {
-            const seconds = parseInt(errorsAny.lockout_seconds as string);
+        const lockoutSecondsError = 'lockout_seconds' in errors ? errors.lockout_seconds : undefined;
+        if (typeof lockoutSecondsError === 'string') {
+            const seconds = parseInt(lockoutSecondsError, 10);
             setLockoutSeconds(seconds);
             setCountdown(seconds);
         }
@@ -71,7 +70,7 @@ export default function Login({ status, canResetPassword, loginSuccess }: LoginP
                 // Only on successful login, we'll get redirected
                 // The backend handles the redirect with X-Inertia-Location header
             },
-            onError: (errors) => {
+            onError: () => {
                 // Errors will be automatically shown via InputError components
                 // The form will stay on the page with error messages visible
             },

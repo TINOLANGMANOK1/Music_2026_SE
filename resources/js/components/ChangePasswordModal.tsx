@@ -30,7 +30,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
       reset(); // Reset form fields when modal opens
       clearErrors(); // Clear any previous errors
     }
-  }, [isOpen]);
+  }, [isOpen, reset, clearErrors]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData(e.target.name as 'current_password' | 'password' | 'password_confirmation', e.target.value);

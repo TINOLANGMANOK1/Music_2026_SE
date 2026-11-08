@@ -10,7 +10,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationNext, Paginati
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
-import { Info, Filter, Home, Wrench, Clock, Package, Calendar as CalendarIcon } from 'lucide-react';
+import { Filter, Clock, Package, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SuccessModal from '@/components/SuccessModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -19,6 +19,7 @@ import DecommissionModal from '@/components/DecommissionModal';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { type SharedData } from '@/types';
 
 interface Asset {
     id: number;
@@ -68,13 +69,6 @@ interface InventoryProps {
     openId?: string | null;
 }
 
-const PIE_COLORS = {
-    'In Stock': '#2E8B57',
-    Borrowed: '#B22222',
-    'Under Repair': '#DAA520',
-    Disposed: '#808080',
-};
-
 // Helper function to convert database status to display name
 const getDisplayStatus = (dbStatus: string): string => {
     const statusMap: Record<string, string> = {
@@ -98,7 +92,7 @@ const getDbStatus = (displayStatus: string): string => {
 };
 
 export default function Inventory({ assets, disposals, filters, categories, statuses, offices, openId }: InventoryProps) {
-    const { auth } = usePage().props;
+    const { auth } = usePage<SharedData>().props;
     const user = auth.user;
     const canManageInventory = user?.role === 'Music Dean' || user?.role === 'Administrator';
     
@@ -126,22 +120,25 @@ export default function Inventory({ assets, disposals, filters, categories, stat
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     // Handle opening asset from dashboard via backend openId prop
     useEffect(() => {
-        if (openId) {
-            const asset = assets.data.find(a => a.id === parseInt(openId));
-            if (asset) {
-                setTimeout(() => {
-                    openDetailsModal(asset);
-                    // Clear openId from URL to prevent it from persisting
-                    const currentParams = new URLSearchParams(window.location.search);
-                    currentParams.delete('openId');
-                    const newUrl = currentParams.toString() 
-                        ? `${window.location.pathname}?${currentParams.toString()}`
-                        : window.location.pathname;
-                    window.history.replaceState({}, '', newUrl);
-                }, 100);
-            }
-        }
-    }, [openId]);
+        if (!openId || processedOpenIdRef.current === openId) return;
+
+        const asset = assets.data.find(a => a.id === parseInt(openId));
+        if (!asset) return;
+
+        processedOpenIdRef.current = openId;
+        const timeout = setTimeout(() => {
+            openDetailsModal(asset);
+            // Clear openId from URL to prevent it from persisting
+            const currentParams = new URLSearchParams(window.location.search);
+            currentParams.delete('openId');
+            const newUrl = currentParams.toString()
+                ? `${window.location.pathname}?${currentParams.toString()}`
+                : window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }, 100);
+
+        return () => clearTimeout(timeout);
+    }, [openId, assets.data]);
 
     // Custom pagination handler to ensure openId is never included
     const handlePagination = (url: string | null) => {
@@ -164,6 +161,7 @@ export default function Inventory({ assets, disposals, filters, categories, stat
     const [selectedDisposal, setSelectedDisposal] = useState<Disposal | null>(null);
 
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const processedOpenIdRef = useRef<string | null>(null);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         id: 0,
@@ -279,12 +277,6 @@ export default function Inventory({ assets, disposals, filters, categories, stat
     const openDetailsModal = (asset: Asset) => {
         setSelectedAsset(asset);
         setIsDetailsModalOpen(true);
-    };
-
-    const closeDetailsModal = () => {
-        setSelectedAsset(null);
-        setIsDetailsModalOpen(false);
-        setIsEditingInDetailsModal(false);
     };
 
     // Filter disposals based on search and filters

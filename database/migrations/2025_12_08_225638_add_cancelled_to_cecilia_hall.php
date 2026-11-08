@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('cecilia_hall_bookings')) {
+            return;
+        }
+
         Schema::table('cecilia_hall_bookings', function (Blueprint $table) {
             if (!Schema::hasColumn('cecilia_hall_bookings', 'cancelled_by')) {
                 $table->foreignId('cancelled_by')->nullable()->after('approved_at')->constrained('users');
@@ -24,7 +28,9 @@ return new class extends Migration
         });
         
         // Add 'cancelled' to status enum
-        DB::statement("ALTER TABLE cecilia_hall_bookings MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending'");
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement("ALTER TABLE cecilia_hall_bookings MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -32,6 +38,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('cecilia_hall_bookings')) {
+            return;
+        }
+
         Schema::table('cecilia_hall_bookings', function (Blueprint $table) {
             if (Schema::hasColumn('cecilia_hall_bookings', 'cancelled_by')) {
                 $table->dropForeign(['cancelled_by']);
@@ -45,6 +55,8 @@ return new class extends Migration
             }
         });
         
-        DB::statement("ALTER TABLE cecilia_hall_bookings MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed') DEFAULT 'pending'");
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement("ALTER TABLE cecilia_hall_bookings MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed') DEFAULT 'pending'");
+        }
     }
 };

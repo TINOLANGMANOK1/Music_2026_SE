@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('student') || !Schema::hasColumn('student', 'sec')) {
+            return;
+        }
+
         Schema::table('student', function (Blueprint $table) {
             // Increase the sec column from VARCHAR(10) to VARCHAR(50) to accommodate longer section codes like "BM4-Req-VC-App"
             $table->string('sec', 50)->change();
@@ -22,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('student') || !Schema::hasColumn('student', 'sec')) {
+            return;
+        }
+
         Schema::table('student', function (Blueprint $table) {
             $table->string('sec', 10)->change();
         });

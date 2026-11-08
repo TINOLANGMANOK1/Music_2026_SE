@@ -1,11 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationFirst, PaginationLast } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationFirst, PaginationLast } from '@/components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import SuccessModal from '@/components/SuccessModal';
 import FailureModal from '@/components/FailureModal';
+import { type SharedData } from '@/types';
 
 interface Student {
     student_id: string;
@@ -67,7 +68,7 @@ export default function StudentInformation({ students, filters, sections, auth }
     const [isDeleting, setIsDeleting] = useState(false);
 
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const { flash, errors: pageErrors } = usePage().props as any;
+    const { flash } = usePage<SharedData>().props;
     
     // Check if user has permission to add/delete students (Music Dean or Administrator only)
     const canManageStudents = auth?.user?.role === 'Music Dean' || auth?.user?.role === 'Administrator';
@@ -97,7 +98,7 @@ export default function StudentInformation({ students, filters, sections, auth }
                 setIsSyncing(false);
                 setShowSyncSuccessModal(true);
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 setIsSyncing(false);
                 setSyncErrorMessage(errors.sync || 'Failed to sync student data. Please try again.');
                 setShowSyncErrorModal(true);
@@ -155,7 +156,7 @@ export default function StudentInformation({ students, filters, sections, auth }
                 setAddModalOpen(false);
                 // Success modal will be shown by useEffect detecting flash.success
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 // Collect all error messages
                 const errorMessages = Object.values(errors).flat().join(', ');
                 setAddErrorMessage(errorMessages || 'Failed to add student. Please check your input.');
@@ -201,7 +202,7 @@ export default function StudentInformation({ students, filters, sections, auth }
                 setDeleteConfirmationText('');
                 setIsDeleting(false);
             },
-            onError: (errors: any) => {
+            onError: (errors) => {
                 setIsDeleting(false);
                 const errorMessages = Object.values(errors).flat().join(', ');
                 setAddErrorMessage(errorMessages || 'Failed to delete student(s).');

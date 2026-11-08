@@ -8,20 +8,11 @@ import ResetUserPasswordModal from '@/components/ResetUserPasswordModal';
 import ResetMTLTimeModal from '@/components/ResetMTLTimeModal';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
 import SuccessModal from '@/components/SuccessModal';
-
-interface UserData {
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    role: string;
-    profile_picture_path: string | null;
-}
+import { type SharedData } from '@/types';
 
 export default function UserManagement() {
-    const { auth } = usePage().props as any;
-    const user = auth.user as UserData;
-
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [isResetUserPasswordModalOpen, setIsResetUserPasswordModalOpen] = useState(false);
     const [isResetMTLTimeModalOpen, setIsResetMTLTimeModalOpen] = useState(false);

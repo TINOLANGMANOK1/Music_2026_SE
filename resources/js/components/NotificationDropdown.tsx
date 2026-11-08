@@ -1,6 +1,6 @@
 import { Bell, Trash2, Clock, Mail, CheckCircle2, Search, X, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
 import { usePage } from '@inertiajs/react';
 import { Input } from '@/components/ui/input';
 import ResetUserPasswordModal from './ResetUserPasswordModal';
+import { type SharedData } from '@/types';
 
 interface Notification {
     id: string;
@@ -30,9 +31,9 @@ export default function NotificationDropdown() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [showResetModal, setShowResetModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<{ id: number; name: string; email: string } | null>(null);
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedData>().props;
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         // Only fetch for Admins and Music Deans
         if (!auth.user || !['Administrator', 'Music Dean'].includes(auth.user.role)) {
             return;
@@ -53,14 +54,14 @@ export default function NotificationDropdown() {
                 return;
             }
             
-            const data = await response.json();
+            const data: Notification[] = await response.json();
             setNotifications(data);
             const unread = data.filter((n: Notification) => !n.read_at).length;
             setUnreadCount(unread);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         }
-    };
+    }, [auth.user]);
 
     const getCsrfToken = () => {
         // Try to get CSRF token from meta tag
@@ -96,7 +97,7 @@ export default function NotificationDropdown() {
             clearTimeout(timer);
             clearInterval(interval);
         };
-    }, [auth.user]);
+    }, [fetchNotifications]);
 
     const handleMarkAsRead = async (notificationId: string) => {
         try {
@@ -124,7 +125,7 @@ export default function NotificationDropdown() {
             let data;
             try {
                 data = JSON.parse(text);
-            } catch (e) {
+            } catch {
                 console.error('Failed to parse response:', text);
                 return;
             }
@@ -151,7 +152,7 @@ export default function NotificationDropdown() {
         console.log('Marking all as read, count:', unreadNotifications.length, 'CSRF:', csrfToken ? 'present' : 'MISSING');
         
         try {
-            const results = await Promise.all(
+            await Promise.all(
                 unreadNotifications.map((n) =>
                     fetch(`/api/notifications/${n.id}/read`, {
                         method: 'POST',
@@ -206,7 +207,7 @@ export default function NotificationDropdown() {
             let data;
             try {
                 data = JSON.parse(text);
-            } catch (e) {
+            } catch {
                 console.error('Failed to parse delete response:', text);
                 return;
             }
