@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+vendor
+tests
+public/build
+public/hot
+public/storage
+bootstrap/cache/*.php
+storage/logs/*

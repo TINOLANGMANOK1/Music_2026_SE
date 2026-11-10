@@ -1,9 +1,16 @@
 # Vercel deployment
 
-The Vite build uses Laravel Wayfinder to generate route and controller-action TypeScript modules. The generator runs `php artisan wayfinder:generate --with-form`, so the Vercel install step must provide PHP and install the Laravel Composer dependencies before Vercel runs `npm run build`.
+This Laravel/Inertia application runs on Vercel's Container Runtime using FrankenPHP. `Dockerfile.vercel` installs production PHP dependencies, generates Wayfinder files and Vite assets, and packages Laravel behind a Caddy web server. The root `vercel.json` routes all requests to that container; it does not use a Vite `dist` output directory.
 
-The root `vercel.json` selects `scripts/vercel-install.sh` as Vercel's install command. The script installs PHP 8.4 CLI and the XML/mbstring extensions from Vercel's Amazon Linux build image, verifies and installs Composer, installs production PHP dependencies, generates Wayfinder files with Artisan, then runs `npm ci`. The Wayfinder Vite plugin is skipped on Vercel because generation has already run in the install step; it remains enabled for local development and builds.
+Vercel project detection should select the **Container** framework preset because the repository contains `Dockerfile.vercel`. If the project still shows a Vite preset or asks for an output directory, change **Settings > Build and Deployment > Framework Preset** to **Container**, clear any configured Output Directory, and redeploy.
 
-Composer setup and Wayfinder generation use `APP_ENV=testing` so Laravel's service provider does not try to connect to the configured database during the build. This applies only to the install-step subprocess and does not change the deployment's runtime environment.
+Set deployment environment variables in Vercel before using the app:
 
-The generated Wayfinder files are intentionally Git-ignored; they are generated during each build. This setup addresses build-time generation only and does not configure a Laravel PHP application runtime on Vercel.
+- `APP_KEY`: a stable Laravel application key (generate locally with `php artisan key:generate --show`).
+- `APP_URL`: the production deployment URL.
+- Database variables such as `DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for an externally hosted database.
+- `CLOUDINARY_URL` or the Cloudinary credentials used by the configured Cloudinary disk.
+
+The app's default session and cache stores use the database, so configure the database and run migrations before relying on login/session-backed features. Container filesystems are ephemeral: keep uploads in Cloudinary or another external object store, not local disk. Configure persistent shared cache/session services if the app must use multiple instances.
+
+The image build runs Composer package discovery and Vite/Wayfinder generation with `APP_ENV=testing` to avoid database access during build. That setting applies only during image construction; the running container uses `APP_ENV=production`.
