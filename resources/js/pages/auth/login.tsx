@@ -87,8 +87,8 @@ export default function Login({ status, canResetPassword, loginSuccess }: LoginP
 
     return (
         <AuthLayout
-            title="College of Music System"
-            description="A Digital Solution for Efficient Record-Keeping"
+            title="College of Music Dashboard"
+            description="A Digital Solution for Inventory Monitoring"
         >
             <Head title="Log in" />
 

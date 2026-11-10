@@ -83,10 +83,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </Sheet>
                     </div>
 
-                    <Link href="/" className="flex items-center gap-2 hover:!text-gray-900 dark:hover:!text-gray-100 hover:!bg-transparent">
+                    <Link href="/" className="flex min-w-0 shrink items-center gap-2 hover:!text-gray-900 dark:hover:!text-gray-100 hover:!bg-transparent">
                         <AppLogoIcon className="h-9 w-9 fill-current text-gray-800 dark:text-gray-200" />
-                        <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                            Music System
+                        <span className="min-w-0 max-w-48 whitespace-normal break-words text-base leading-tight font-semibold text-gray-900 dark:text-gray-100 md:max-w-none md:whitespace-nowrap md:text-xl">
+                            College of Music Dashboard
                         </span>
                     </Link>
 

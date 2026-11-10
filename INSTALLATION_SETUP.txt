@@ -1,0 +1,217 @@
+MUSIC SYSTEM - INSTALLATION AND SETUP
+=====================================
+
+This guide covers a local Windows development setup using XAMPP/MySQL.
+Do not upload your .env file or put real credentials in Git.
+
+
+1. REQUIREMENTS
+---------------
+
+- Git
+- PHP 8.2 or newer
+- Composer 2
+- Node.js 22 and npm
+- MySQL (for example, the MySQL service included with XAMPP)
+
+Make sure PHP and MySQL are available before continuing. In PowerShell, check:
+
+    php -v
+    composer --version
+    node --version
+    npm --version
+
+
+2. GET THE PROJECT
+------------------
+
+Clone the repository, then change into its project directory:
+
+    git clone <repository-url>
+    cd <repository-folder>
+
+If you already have the project, open PowerShell in its root directory (the
+directory containing artisan, composer.json, and package.json).
+
+
+3. CREATE A LOCAL DATABASE
+--------------------------
+
+Start Apache and MySQL from the XAMPP Control Panel. In phpMyAdmin, create an
+empty database, for example:
+
+    music_system
+
+The project uses MySQL-specific migrations, so use MySQL for a normal local
+installation. Make sure the database name and credentials below match your
+local MySQL installation.
+
+
+4. CONFIGURE THE ENVIRONMENT
+----------------------------
+
+Create your local environment file only if one does not already exist. Do not
+overwrite an existing .env file:
+
+    if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+
+Open .env and set the following values. For a typical local XAMPP installation,
+the MySQL username is root and the password is blank; use your own credentials
+if you configured them differently.
+
+    APP_NAME="Music System"
+    APP_ENV=local
+    APP_DEBUG=true
+    APP_URL=http://127.0.0.1:8000
+
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=music_system
+    DB_USERNAME=root
+    DB_PASSWORD=
+
+The checked-in .env.example currently contains DB_CONNECTION=m and an empty
+DB_DATABASE. Correct these settings in your local .env before installing
+Composer dependencies. Never put production passwords, API secrets, or other
+private values into .env.example.
+
+
+5. INSTALL DEPENDENCIES AND INITIALIZE LARAVEL
+-----------------------------------------------
+
+Keep MySQL running and ensure the database exists before running Composer:
+
+    composer install
+    npm ci
+    php artisan key:generate
+    php artisan migrate
+    php artisan storage:link
+
+If Laravel reports that the storage link already exists, that is usually
+harmless; check the link before removing or replacing anything.
+
+Optional: seed development data:
+
+    php artisan db:seed
+
+The current database seeder creates a development account:
+
+    Email:    test@example.com
+    Password: password
+
+Use this account only for local development. Do not use it in production.
+Do not run the development seeder on a production database.
+
+
+6. RUN THE APPLICATION
+----------------------
+
+Open separate PowerShell windows in the project root.
+
+Window 1 - Laravel:
+
+    php artisan serve
+
+Window 2 - Vite frontend assets:
+
+    npm run dev
+
+Open the address printed by Laravel, usually:
+
+    http://127.0.0.1:8000
+
+The booking completion scheduler must also be running for expired MTL bookings
+to be completed automatically. Run this in another window during development:
+
+    php artisan schedule:work
+
+
+7. CHECK THE INSTALLATION
+-------------------------
+
+Run the backend tests:
+
+    php artisan test
+
+Check frontend TypeScript:
+
+    npm run types
+
+Check frontend lint without automatic fixes:
+
+    npx eslint .
+
+Build production frontend assets:
+
+    npm run build
+
+The npm scripts named "lint" and "format" modify files automatically. Do not
+use those commands when you only want to check the project without editing it.
+Use "npx eslint ." and "npm run format:check" for non-fixing checks.
+
+
+8. GITHUB ACTIONS / CI DATABASE NOTE
+------------------------------------
+
+The GitHub Actions tests workflow must provide a usable database configuration
+before Composer installation. Composer runs Laravel package discovery, which
+boots the application; AppServiceProvider checks for the migrations table at
+that time.
+
+In the workflow, configure SQLite and create its database file before
+"composer install", for example:
+
+    - name: Configure test environment
+      run: |
+        cp .env.example .env
+        sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+        sed -i 's/^DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+        touch database/database.sqlite
+
+Then run Composer install, npm ci, the asset build, and the tests. Keep this
+CI-only SQLite configuration in the GitHub Actions workflow; do not copy it
+over your local MySQL settings. The current .env.example database values need
+attention as noted above.
+
+
+9. PRODUCTION / RAILWAY
+-----------------------
+
+Do not use the local XAMPP settings or development seeder in production.
+Configure production environment variables in the hosting provider:
+
+- APP_ENV=production
+- APP_DEBUG=false
+- A unique APP_KEY generated for that deployment
+- APP_URL set to the HTTPS application URL
+- DB_CONNECTION=mysql and the provider's MySQL connection values
+- Production-safe session, cache, queue, mail, and external API settings
+
+Never commit .env or production secrets. Review RAILWAY_DEPLOYMENT.md for the
+project's existing Railway notes. Configure the Laravel scheduler as a
+continuously running process (or an equivalent scheduled task) so expired MTL
+bookings are processed.
+
+
+TROUBLESHOOTING
+---------------
+
+"could not find driver":
+    Enable the required PHP database extension (pdo_mysql for MySQL) in the
+    PHP configuration used by both the command line and web server.
+
+"Unknown database":
+    Start MySQL and create the database named in DB_DATABASE.
+
+Composer fails during package discovery with a database error:
+    Verify .env exists, DB_CONNECTION is mysql, the database exists, and the
+    credentials are correct before running composer install.
+
+"Vite manifest not found":
+    Run npm ci and npm run build, or run npm run dev while developing.
+
+"No application encryption key":
+    Run php artisan key:generate locally. For production, set APP_KEY through
+    the hosting provider's secret/environment-variable settings.
+
