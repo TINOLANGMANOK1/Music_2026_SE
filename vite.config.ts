@@ -15,6 +15,9 @@ export default defineConfig({
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            command: process.env.VERCEL
+                ? `php -r "putenv('APP_ENV=testing'); require 'artisan';" wayfinder:generate`
+                : undefined,
         }),
     ],
     esbuild: {
