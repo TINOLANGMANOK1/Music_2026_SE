@@ -11,6 +11,6 @@ Set deployment environment variables in Vercel before using the app:
 - Database variables such as `DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for an externally hosted database.
 - `CLOUDINARY_URL` or the Cloudinary credentials used by the configured Cloudinary disk.
 
-The app's default session and cache stores use the database, so configure the database and run migrations before relying on login/session-backed features. Container filesystems are ephemeral: keep uploads in Cloudinary or another external object store, not local disk. Configure persistent shared cache/session services if the app must use multiple instances.
+On Vercel, the app uses Laravel's encrypted cookie session driver and in-memory array cache to avoid requiring MySQL just to render the public/login pages. Keep `APP_KEY` stable: it is used to encrypt session cookies. The cache is not shared or persistent, and the cookie session does not store data in MySQL. The application still requires a reachable database for authentication, bookings, inventory, and other database-backed features. Configure and migrate the external database before using those features. Container filesystems are ephemeral: keep uploads in Cloudinary or another external object store, not local disk.
 
 The image build runs Composer package discovery and Vite/Wayfinder generation with `APP_ENV=testing` to avoid database access during build. That setting applies only during image construction; the running container uses `APP_ENV=production`.
