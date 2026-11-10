@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-dnf install -y php8.4-cli php8.4-mbstring php8.4-xml curl
+dnf install -y php8.4-cli php8.4-mbstring php8.4-xml
 
 composer_setup=/tmp/composer-setup.php
 expected_checksum="$(curl -fsSL https://composer.github.io/installer.sig)"
