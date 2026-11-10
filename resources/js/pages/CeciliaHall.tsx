@@ -54,6 +54,22 @@ interface CeciliaBookingRecord {
     rejected_at?: string | null;
 }
 
+interface CeciliaBookingRecord {
+    id: number | string;
+    name: string;
+    email: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    purpose?: string | null;
+    status: string;
+    rejection_reason?: string | null;
+    booker_type?: 'music_department' | 'external';
+    letter_url?: string | null;
+    cancellation_reason?: string | null;
+    rejected_at?: string | null;
+}
+
 interface TimeSlot {
     id: string;
     start: Date;

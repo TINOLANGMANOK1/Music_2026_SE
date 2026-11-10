@@ -11,7 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { TimePicker } from '@/components/ui/time-picker';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
+<<<<<<< HEAD
 import { invalidateBookingPrefetches } from '@/lib/bookingPrefetch';
+=======
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
 import { Head, router } from '@inertiajs/react';
 import { addDays, addWeeks, endOfDay, endOfWeek, format, isSameDay, isWithinInterval, parseISO, startOfDay, startOfWeek, subWeeks } from 'date-fns';
 import { AlertCircle, CalendarDays, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, User, X, XCircle } from 'lucide-react';
@@ -126,7 +129,12 @@ export default function MTLBooking({ bookings = [], rejectedBookings = [], auth 
 
     // Convert bookings from backend to TimeSlot format
     useEffect(() => {
+<<<<<<< HEAD
         const converted = bookings.flatMap((booking): TimeSlot[] => {
+=======
+        if (bookings && bookings.length > 0) {
+            const converted = bookings.map((booking) => {
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
                 const dateParts = booking.date.split('-');
                 const year = parseInt(dateParts[0]);
                 const month = parseInt(dateParts[1]) - 1;
@@ -146,6 +154,7 @@ export default function MTLBooking({ bookings = [], rejectedBookings = [], auth 
                 // Determine status based on backend status and whether booking is past
                 const now = new Date();
                 const isPast = endDate < now;
+<<<<<<< HEAD
                 let status: TimeSlot['status'];
 
                 switch (booking.status) {
@@ -164,6 +173,19 @@ export default function MTLBooking({ bookings = [], rejectedBookings = [], auth 
                 }
 
                 return [{
+=======
+                let status: 'booked' | 'pending' | 'completed';
+
+                if (isPast && booking.status === 'approved') {
+                    status = 'completed';
+                } else if (booking.status === 'approved') {
+                    status = 'booked';
+                } else {
+                    status = 'pending';
+                }
+
+                return {
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
                     id: booking.id.toString(),
                     start: startDate,
                     end: endDate,
@@ -175,9 +197,16 @@ export default function MTLBooking({ bookings = [], rejectedBookings = [], auth 
                     purpose: booking.purpose || undefined,
                     status,
                     rejection_reason: booking.rejection_reason || undefined,
+<<<<<<< HEAD
                 }];
         });
         setMockBookings(converted);
+=======
+                };
+            });
+            setMockBookings(converted);
+        }
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
     }, [bookings]);
 
     // Cleanup student search when modal closes
@@ -257,8 +286,13 @@ export default function MTLBooking({ bookings = [], rejectedBookings = [], auth 
     // Stats for the current view
     const weekStats = useMemo(() => {
         return {
+<<<<<<< HEAD
             total: currentBookings.length + currentPendingBookings.length,
             booked: currentBookings.filter((b) => b.status === 'booked' || b.status === 'completed').length,
+=======
+            total: currentBookings.length,
+            booked: currentBookings.filter((b) => b.status === 'booked').length,
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
             pending: currentPendingBookings.length,
         };
     }, [currentBookings, currentPendingBookings]);

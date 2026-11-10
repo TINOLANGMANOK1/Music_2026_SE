@@ -4,6 +4,7 @@ export function invalidateResourceAndActivityPrefetches() {
     router.flush('/resources');
     router.flush('/activity-log');
 }
+<<<<<<< HEAD
 
 export function invalidateBookingPrefetches() {
     router.flush('/cecilia-hall');
@@ -11,3 +12,5 @@ export function invalidateBookingPrefetches() {
     router.flush('/mtl-booking');
     router.flush('/mtl-booking/approvals');
 }
+=======
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee

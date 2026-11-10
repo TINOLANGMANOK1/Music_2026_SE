@@ -96,6 +96,7 @@ test('MTL approvals are limited to administrator and dean roles', function () {
         ->assertOk();
 });
 
+<<<<<<< HEAD
 test('MTL approval is reflected in the booking page and removed from pending approvals', function () {
     $dean = User::factory()->create(['role' => 'Music Dean']);
     $booking = MTLBooking::create([
@@ -148,6 +149,8 @@ test('Cecilia Hall approval is reflected in the booking page and removed from pe
         ->assertInertia(fn ($page) => $page->has('pendingBookings', 0));
 });
 
+=======
+>>>>>>> 621add42940bdb7224513d52ec87c861001273ee
 test('Cecilia authorization letters are limited to the dean or booking owner', function () {
     $owner = User::factory()->create(['role' => 'Student Assistant']);
     $otherUser = User::factory()->create(['role' => 'Student Assistant']);
