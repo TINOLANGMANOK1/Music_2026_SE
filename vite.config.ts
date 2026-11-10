@@ -13,12 +13,7 @@ export default defineConfig({
         }),
         react(),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-            command: process.env.VERCEL
-                ? `php -r "putenv('APP_ENV=testing'); require 'artisan';" wayfinder:generate`
-                : undefined,
-        }),
+        ...(process.env.VERCEL ? [] : [wayfinder({ formVariants: true })]),
     ],
     esbuild: {
         jsx: 'automatic',

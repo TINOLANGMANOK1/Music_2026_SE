@@ -20,5 +20,6 @@ rm -f "$composer_setup"
 export APP_ENV=testing
 export COMPOSER_ALLOW_SUPERUSER=1
 /tmp/composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+php artisan wayfinder:generate --with-form
 unset APP_ENV
 npm ci
